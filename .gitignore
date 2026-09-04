@@ -24,3 +24,7 @@ CLAUDE.md
 
 # 연구용 분석 (로컬 전용, 저장소 제외)
 analysis/
+
+# 릴리스 본문 초안 (11_db_status.py 가 DB 를 읽어 만든다. 손으로 고치지 않는다)
+docs/릴리스_본문.md
+docs/릴리스_본문_붙여넣기.md
