@@ -1,0 +1,26 @@
+# 데이터·산출물 (로컬 생성, 저장소 제외)
+# ICIO 원본 zip 590MB, parquet 550MB, gvc.duckdb 약 2GB.
+# 전부 scripts/01~03 으로 다시 만들어진다. DB 는 GitHub Releases 로 배포한다.
+data/raw/
+data/interim/
+data/processed/
+logs/
+
+# 외부 자료는 통째로 뺀다. 제공기관(OECD·UNSD·국가데이터처)의 자료를 재배포하지
+# 않기 위해서다(NOTICE.md). 전부 스크립트가 다시 받는다 —
+#   분류표: 04b_fetch_ksic.py   TiVA: 08_validate_tiva.py
+data/external/
+
+# 캐시
+__pycache__/
+*.pyc
+.venv/
+
+# 로컬 에디터/도구 설정
+.claude/
+
+# 세션 안내서. 작업 규약과 미공개 연구 맥락이 들어 있어 로컬 전용이다.
+CLAUDE.md
+
+# 연구용 분석 (로컬 전용, 저장소 제외)
+analysis/

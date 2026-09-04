@@ -1,0 +1,694 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GVC 지표 DB (OECD ICIO 기반)</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b2430; --muted:#5b6673;
+    --line:#e3e7ec; --brand:#1f6feb; --brand-soft:#eaf1fe;
+    --ok:#137a3f; --ok-soft:#e6f4ec; --warn:#8a5b00; --warn-soft:#fdf3df;
+    --info:#4b4f8a; --info-soft:#ecedf7; --danger:#a11; --code:#0f172a;
+    --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    /* 한국어는 기본값이면 낱말 한가운데서 끊긴다. keep-all이 띄어쓰기에서만 끊게 하고,
+       overflow-wrap이 mart_gvc_bilateral 같은 긴 식별자를 넘치지 않게 받는다. */
+    word-break:keep-all; overflow-wrap:break-word;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",Roboto,sans-serif;
+    line-height:1.6; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:0 16px}
+  a{color:var(--brand); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em}
+
+  /* header */
+  header.top{background:linear-gradient(180deg,#fff, #fbfcfe); border-bottom:1px solid var(--line)}
+  .brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding:22px 0 6px}
+  .brand h1{font-size:1.95rem;font-weight:700;margin:0;letter-spacing:-.01em}
+  .brand .tag{color:var(--muted);font-size:1.17rem;font-weight:700}
+  .lede{color:var(--muted);margin:0 0 16px;font-size:.98rem}
+
+  /* tabs */
+  nav.tabs{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+    backdrop-filter:saturate(1.4) blur(6px); border-bottom:1px solid var(--line)}
+  .tabrow{display:flex;gap:4px;overflow-x:auto;padding:8px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabrow::-webkit-scrollbar{display:none}
+  .tabrow button{
+    flex:0 0 auto; border:1px solid transparent; background:transparent; color:var(--muted);
+    font:inherit; font-weight:600; font-size:.92rem; padding:11px 14px; border-radius:999px; cursor:pointer; white-space:nowrap;
+  }
+  .tabrow button:hover{color:var(--ink);background:var(--brand-soft)}
+  .tabrow button[aria-selected="true"]{color:var(--brand);background:var(--brand-soft);border-color:#d4e2fb}
+
+  /* sections */
+  main{padding:22px 0 8px}
+  section[role=tabpanel]{display:none;animation:fade .18s ease}
+  section[role=tabpanel].active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2.h{font-size:1.56rem;margin:2px 0 6px}
+  .sub{color:var(--muted);margin:6px 0 14px;font-size:.95rem}
+  .sub.lead{color:var(--ink);font-weight:600;font-size:1.02rem;margin:0 0 18px}
+  .sub.lead + .panel{margin-top:0}
+  h3{font-size:1.2rem;margin:30px 0 8px;letter-spacing:-.01em}
+  section[role=tabpanel] > h3{border-top:1px solid var(--line);padding-top:24px}
+  section[role=tabpanel] > h3:first-of-type{border-top:none;padding-top:0;margin-top:22px}
+  section[role=tabpanel] > h4{font-size:1rem;margin:20px 0 6px}
+  ol.steps h4{font-size:1rem;margin:0 0 4px}
+  p{margin:8px 0}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 16px;margin:14px 0}
+  .panel > :first-child{margin-top:0}
+  .panel > :last-child{margin-bottom:0}
+
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+  .stat .n{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+  .stat .k{color:var(--muted);font-size:.82rem;margin-top:2px}
+
+  /* principle list */
+  ol.principle{counter-reset:p;list-style:none;padding:0;margin:10px 0}
+  ol.principle li{counter-increment:p;position:relative;padding:10px 12px 10px 46px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fff}
+  ol.principle li::before{content:counter(p);position:absolute;left:12px;top:10px;width:24px;height:24px;border-radius:50%;
+    background:var(--brand);color:#fff;font-weight:700;font-size:.85rem;display:grid;place-items:center}
+
+  /* tables */
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:14px 0;
+    -webkit-overflow-scrolling:touch;
+    background:
+      linear-gradient(to right,var(--panel) 40%,rgba(255,255,255,0)) left center/28px 100% no-repeat local,
+      linear-gradient(to left,var(--panel) 40%,rgba(255,255,255,0)) right center/28px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%,rgba(16,24,40,.16),rgba(16,24,40,0)) left center/12px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%,rgba(16,24,40,.16),rgba(16,24,40,0)) right center/12px 100% no-repeat scroll;
+    background-color:var(--panel)}
+  table{border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem}
+  caption{caption-side:top;text-align:left;font-weight:700;padding:10px 12px 2px;font-size:.93rem}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:#f2f5f9;color:var(--muted);font-weight:700;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td code{color:var(--code)}
+  td.r,th.r{text-align:right;white-space:nowrap}
+  td.s,th.s{font-size:.84rem;color:var(--muted)}
+  tr.grp td{background:#f2f5f9;font-weight:700;color:var(--ink);font-size:.88rem;
+    padding-top:10px;padding-bottom:6px}
+  tbody tr:hover td{background:#f8fafc}
+  table.inv{min-width:760px}
+  table.inv td:nth-child(2){min-width:230px}
+  table.inv td:nth-child(5){min-width:200px}
+  table.sch th:nth-child(1),table.sch td:nth-child(1){width:22%}
+  table.sch th:nth-child(2),table.sch td:nth-child(2){width:22%}
+
+  /* badges & verdict */
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.78rem;font-weight:700;line-height:1.7}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.warn{background:var(--warn-soft);color:var(--warn)}
+  .pill.info{background:var(--info-soft);color:var(--info)}
+  .pill.fail{background:#fdecec;color:var(--danger)}
+  .verdict{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+
+  /* trap cards */
+  .traps{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:12px 0}
+  .trap{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow)}
+  .trap h4{margin:0 0 4px;font-size:.98rem}
+  .trap .tref{color:var(--muted);font-size:.76rem;font-weight:600}
+  .trap p{margin:6px 0 0;font-size:.9rem;color:#333}
+  .trap.hot{border-left-color:var(--warn)}
+  .trap.hot .tref{color:var(--warn)}
+
+  /* steps */
+  ol.steps{padding-left:0;counter-reset:s;list-style:none;margin:12px 0}
+  ol.steps > li{counter-increment:s;position:relative;padding:2px 0 16px 40px;border-left:2px solid var(--line);margin-left:12px}
+  ol.steps > li:last-child{border-left-color:transparent}
+  ol.steps > li::before{content:counter(s);position:absolute;left:-14px;top:0;width:26px;height:26px;border-radius:50%;
+    background:#fff;border:2px solid var(--brand);color:var(--brand);font-weight:700;font-size:.85rem;display:grid;place-items:center}
+  ol.steps h4{margin:0 0 4px;font-size:.98rem}
+
+  pre{background:var(--code);color:#e6edf3;border-radius:10px;padding:14px;overflow-x:auto;font-size:.85rem;line-height:1.5;margin:10px 0}
+  pre code{color:inherit}
+  .inlinecode{background:#eef1f5;border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+
+  /* 상자는 두 갈래다. note = 알아 두면 좋은 보충, note.warn = 모르고 쓰면 틀리는 것. */
+  .note{background:var(--info-soft);border:1px solid #dcdef2;border-left:3px solid var(--info);
+    border-radius:10px;padding:10px 14px;margin:14px 0;font-size:.9rem}
+  .note b{color:var(--info)}
+  .note.warn{background:var(--warn-soft);border-color:#f0e2c0;border-left-color:var(--warn)}
+  .note.warn b{color:var(--warn)}
+
+  .btnrow{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+  .btn{display:inline-block;padding:9px 16px;border-radius:9px;font-weight:600;font-size:.92rem;border:1px solid var(--line);background:#fff}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.primary:hover{text-decoration:none;opacity:.92}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);margin-top:26px;padding:20px 0 40px;color:var(--muted);font-size:.84rem;background:#fff}
+  footer .ver{display:inline-block;background:#eef1f5;border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-weight:700;color:var(--ink);margin-bottom:8px}
+  footer p{margin:6px 0}
+
+  @media (max-width:560px){
+    table{min-width:0;font-size:.85rem}
+    table.inv{min-width:640px}
+    th,td{padding:7px 9px;overflow-wrap:anywhere}
+    thead th{white-space:normal}
+  }
+  @media (max-width:420px){
+    .brand h1{font-size:1.625rem}
+    h3{font-size:1.1rem}
+    .stat .n{font-size:1.28rem}
+    h2.h{font-size:1.4rem}
+  }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>GVC 지표 DB</h1>
+      <span class="tag">OECD ICIO 기반</span>
+    </div>
+    <p class="lede">이 데이터베이스는 OECD가 공개하는 <a href="https://www.oecd.org/en/data/datasets/inter-country-input-output-tables.html" target="_blank" rel="noopener">국가간 산업연관표(ICIO) 2025판</a>을 원표 그대로 담고, 거기서 표준 글로벌 가치사슬(GVC) 지표를 국가×산업×연도 수준으로 산출해 둔 것이다. 1995–2022년, 80개국과 세계잔여(ROW), 50개 산업이 들어 있다. 여기에 한국표준산업분류(KSIC)와 ICIO 산업분류를 잇는 연계표를 더했다 — 기업 미시자료에 산업 수준 GVC 지표를 붙이려면 이것이 있어야 한다. 무엇이 얼마나 들어 있는지는 <a href="#" onclick="showTab('use');return false">받기·사용</a> 탭의 표 전체 목록에 있다.</p>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <div class="tabrow" role="tablist" aria-label="대시보드 탭">
+      <button role="tab" aria-selected="true"  aria-controls="tab-overview" id="t-overview">개요</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-build"    id="t-build">DB 구축</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-link"     id="t-link">분류 연계</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-traps"    id="t-traps">데이터 함정</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-use"      id="t-use">받기·사용</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap">
+
+  <!-- ============ 개요 ============ -->
+  <section role="tabpanel" id="tab-overview" aria-labelledby="t-overview" class="active">
+    <h2 class="h">개요</h2>
+    <p class="sub lead">이 DB가 무엇을 담고, 어떤 설계 원칙 위에 서 있는지를 소개한다.</p>
+
+    <div class="panel">
+      <p><b>무엇인가.</b> OECD 국가간 산업연관표를 변형 없이 적재하고, 거기서 계산한 GVC 지표와 분류 연계표를 함께 담은 DuckDB 단일 파일 DB다. 원표는 셋으로 나뉘어 들어간다 — 중간재 거래(국가·산업 → 국가·산업), 최종수요(6유형), 그리고 생산물세·부가가치·총산출이다. 지표는 수출에 실린 자국/외국 부가가치 비중, 후방·전방 참여도, 상류도와 하류도, 상대국별 부가가치 함량이다. 파일 하나만 내려받으면 별도 서버나 설치 없이 바로 SQL로 질의할 수 있다.</p>
+      <p><b>왜 만들었나.</b> OECD가 배포하는 원본은 연도묶음 zip 다섯 개에 담긴 거대한 정사각 행렬이다. 한 해가 4,053행 × 4,538열이고 CSV 한 장이 87MB다. 이 상태로는 「한국 반도체의 후방참여도가 언제 꺾였나」 같은 질문에 답할 수 없다 — 매번 행렬을 읽어 레온티에프 역행렬을 구해야 하기 때문이다. 이 DB는 그 계산을 28년치 전부 한 번 끝내 두어, 사용자가 곧바로 분석에 들어갈 수 있게 한다.</p>
+      <p><b>무엇이 어려운가.</b> 두 가지다. 첫째, 부가가치 계수를 어떻게 정의하느냐에 따라 수출 분해가 달라진다. 순생산물세를 부가가치에 넣지 않으면 자국분과 외국분의 합이 총수출에 못 미친다. 둘째, OECD 자신은 공표 지표를 「확장판」에서 계산한다. 중국과 멕시코를 가공무역 부문과 그 밖으로 쪼갠 표다. 이 사실을 모르고 표준판으로 계산하면 중국의 자국 부가가치 비중이 3% 높게 나온다. 둘 다 문서에 명시돼 있지 않아, 이 DB는 OECD 공표치와 55만 칸을 맞대어 실측으로 확정했다(<a href="#" onclick="showTab('build');return false">DB 구축</a> 탭).</p>
+      <p><b>누구를 위한 것인가.</b> 무역·산업 자료로 직접 분석하려는 연구자와 학생이 주 독자다. 로컬 주피터 노트북에서 읽어 쓰는 것을 전제로 하되 conda나 특정 파이썬 버전은 필요 없다 — 패키지 넷(<code>duckdb</code>·<code>pandas</code>·<code>matplotlib</code>·<code>jupyter</code>)이면 된다. 반대로 이 DB가 답하지 못하는 것도 분명하다. 기업 단위 자료가 아니고(국가×산업 집계다), HS 품목분류가 들어 있지 않으며(자매 DB <a href="https://pilsunchoi.github.io/KCSDB2/" target="_blank" rel="noopener">KCSDB2</a>가 갖고 있다), 2022년까지다. 받아서 쓰는 방법은 <a href="#" onclick="showTab('use');return false">받기·사용</a> 탭에 있다.</p>
+    </div>
+
+<!-- DB_STATUS:START -->
+    <div class="stats">
+      <div class="stat"><div class="n">515,411,961</div><div class="k">원표 중간재 거래 행 (두 판 합)</div></div>
+      <div class="stat"><div class="n">1995–2022</div><div class="k">연도 (28개, 빠짐 없음)</div></div>
+      <div class="stat"><div class="n">81</div><div class="k">개체 (80개국 + ROW)</div></div>
+      <div class="stat"><div class="n">50</div><div class="k">ICIO 산업 (ISIC Rev.4)</div></div>
+      <div class="stat"><div class="n">232,400</div><div class="k">GVC 지표 칸 (국가×산업×연도)</div></div>
+      <div class="stat"><div class="n">1,205</div><div class="k">KSIC 11차 세세분류 (전부 매핑됨)</div></div>
+    </div>
+<!-- DB_STATUS:END -->
+
+    <h3>설계 원칙</h3>
+    <p>이 DB는 자매 프로젝트 <a href="https://pilsunchoi.github.io/KCSDB2/" target="_blank" rel="noopener">KCSDB2</a>(관세청 무역통계)의 구축 헌법을 그대로 따른다. 다섯 문장으로 줄이면 이렇다.</p>
+    <ol class="principle">
+      <li><b>fact 테이블은 OECD가 배포한 값만 담는다.</b> 파생 컬럼을 만들지 않는다.</li>
+      <li><b>관측값을 변형하지 않는다.</b> 균형화·반올림·보정을 하지 않는다. 원표가 어긋나 있으면 어긋난 채로 담고 그 사실을 검증에서 보고한다.</li>
+      <li><b>분류 연계와 참조 정보는 dim·map 계층에 둔다.</b> fact는 건드리지 않는다.</li>
+      <li><b>계산된 지표는 mart 계층에 둔다.</b> 모든 mart 행이 <code>edition</code>과 <code>method_version</code>을 갖는다. 산식을 고치면 판을 올린다.</li>
+      <li><b>판(edition)이 다르면 다른 자료다.</b> 판 간 결합을 하지 않는다.</li>
+    </ol>
+
+    <h3>믿을 수 있는가</h3>
+    <p>자체 산출치를 OECD가 공표하는 TiVA 지표와 통째로 맞대어 확인했다. 규모 있는 칸(공표치 10억 달러 초과)에서 상대오차 0.1%를 넘는 칸이 몇 개나 되는지를 센 결과다. 대조 결과 자체가 <code>mart_tiva_check</code> 표로 DB에 들어 있어, 받은 사람이 직접 다시 볼 수 있다.</p>
+    <div class="tblwrap">
+      <table>
+        <caption>OECD TiVA 2025판 대조 — 허용치(상대오차 0.1%)를 넘는 칸 수</caption>
+        <thead><tr><th>측정치</th><th class="r">표준판 · 78개국+ROW</th><th class="r">표준판 · 중국·멕시코</th><th class="r">확장판 · 전체</th></tr></thead>
+        <tbody>
+          <tr><td>총산출 <code>PROD</code></td><td class="r">0 / 70,036</td><td class="r">0 / 2,700</td><td class="r">0</td></tr>
+          <tr><td>총수출 <code>EXGR</code></td><td class="r">0 / 33,163</td><td class="r">0 / 1,705</td><td class="r">0</td></tr>
+          <tr><td>부가가치 <code>VALU</code></td><td class="r">0 / 56,602</td><td class="r">0 / 2,617</td><td class="r">0</td></tr>
+          <tr><td>수출 내 자국 부가가치 <code>EXGR_DVA</code></td><td class="r">26 / 29,182</td><td class="r">1,321 / 1,631</td><td class="r">0</td></tr>
+          <tr><td>수출 내 외국 부가가치 <code>EXGR_FVA</code></td><td class="r">506 / 14,056</td><td class="r">910 / 911</td><td class="r">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub">확장판은 다섯 측정치 전부에서 어긋나는 칸이 0개다(최대 상대오차 0.008%). 표준판에서 중국·멕시코가 어긋나는 것은 산식의 결함이 아니라 OECD가 다른 표를 쓰기 때문이다 — 총수출·총산출·부가가치는 표준판에서도 정확히 맞는다.</p>
+
+    <p>원표 자체의 무결성 검증(<code>scripts/09_validate.py</code>)은 두 판 모두 같은 결과다.</p>
+    <div class="verdict">
+      <span class="pill ok">PASS 24</span>
+      <span class="pill warn">WARN 3</span>
+      <span class="pill ok">FAIL 0</span>
+    </div>
+    <p class="sub">WARN 셋은 모두 원표의 성질이고 적재의 결함이 아니다 — 균형 항등식이 <code>L</code>(부동산)·<code>T</code>(가구 내 고용)에서 1e-3 안쪽으로만 맞는 것, 그리고 키프로스 항공운송 두 칸의 부가가치가 음수인 것이다. 자세한 것은 <a href="#" onclick="showTab('traps');return false">데이터 함정</a> 탭에 있다.</p>
+
+    <h3>한눈에 보는 예 — 한국의 후방참여도</h3>
+    <p>후방참여도는 수출 한 단위에 실려 나간 외국 부가가치의 몫이다. 값이 높을수록 남의 것을 많이 사다 가공해 파는 구조다. 아래는 한국 수출 전체를 수출액으로 가중해 평균한 것으로, <code>mart_gvc_core</code> 한 표에서 곧장 나온다.</p>
+    <div class="tblwrap">
+      <table>
+        <caption>한국 총수출의 후방참여도 (표준판 <code>ICIO2025</code>, 단위 %·조 달러)</caption>
+        <thead><tr><th>연도</th><th class="r">1995</th><th class="r">2000</th><th class="r">2005</th><th class="r">2010</th><th class="r">2015</th><th class="r">2019</th><th class="r">2020</th><th class="r">2022</th></tr></thead>
+        <tbody>
+          <tr><td>후방참여도</td><td class="r">25.6</td><td class="r">29.9</td><td class="r">31.8</td><td class="r">37.2</td><td class="r">30.9</td><td class="r">31.6</td><td class="r">29.8</td><td class="r">36.7</td></tr>
+          <tr><td>총수출</td><td class="r">0.14</td><td class="r">0.19</td><td class="r">0.32</td><td class="r">0.52</td><td class="r">0.61</td><td class="r">0.63</td><td class="r">0.58</td><td class="r">0.78</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub">2010년의 봉우리와 2020년의 골이 눈에 띈다. 다만 경상가격이라는 점을 함께 읽어야 한다 — 후방참여도는 비중이라 그대로 쓸 수 있지만, 2010년 값이 높은 데는 국제 원자재 가격이 섞여 있다. 2020년의 하락도 같은 이유(유가 급락)를 상당 부분 안고 있다.</p>
+  </section>
+
+  <!-- ============ DB 구축 ============ -->
+  <section role="tabpanel" id="tab-build" aria-labelledby="t-build">
+    <h2 class="h">DB 구축</h2>
+    <p class="sub lead">원본을 어디서 받아 어떤 순서로 무엇을 만들었는지, 그리고 그 과정에서 실측으로 확정한 것들.</p>
+
+    <h3>자료원</h3>
+    <p>넷을 쓴다. 모두 스크립트가 직접 내려받고, 받은 파일의 URL·바이트·sha256을 <code>meta_source</code> 표에 남긴다 — 원본이 웹에서 사라지거나 조용히 바뀌어도 무엇을 썼는지 알 수 있어야 하기 때문이다.</p>
+    <div class="tblwrap">
+      <table>
+        <caption>원본 자료와 그 역할</caption>
+        <thead><tr><th>자료</th><th>제공</th><th>역할</th></tr></thead>
+        <tbody>
+          <tr><td>OECD ICIO 2025판<br><span class="s">표준판(SML)·확장판(EXT)</span></td><td>OECD STI</td><td>원표. 1995–2022년, 연도묶음 zip 다섯 개씩. 이 DB의 본체다</td></tr>
+          <tr><td>OECD TiVA 2025판</td><td>OECD SDMX</td><td>검증용. 우리 산출치와 맞대어 <code>mart_tiva_check</code>를 만든다</td></tr>
+          <tr><td>ISIC Rev.4 구조</td><td>UN 통계국</td><td>국제표준산업분류 전 계층 코드·명칭 766개</td></tr>
+          <tr><td>KSIC 11차·10차<br><span class="s">전 단계 코드와 차수 연계표</span></td><td>국가데이터처<br>통계분류포털</td><td>한국표준산업분류. 연계표 xlsx와 포털 분류검색 두 경로에서 받아 교차 확인했다</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><b>산업 목록은 PDF에서 옮기지 않았다.</b> OECD가 함께 배포하는 <code>ReadMe</code> 워크북의 <code>Area_Activities</code> 시트에 국가·산업 코드와 대응 ISIC Rev.4가 기계가 읽을 수 있는 형태로 들어 있다. annex PDF의 표를 손으로 옮기면 오타가 섞이고 판이 바뀔 때마다 다시 해야 한다.</div>
+
+    <h3>파이프라인</h3>
+    <p>스크립트 열한 개가 순서대로 돈다. 어느 단계든 처음부터 다시 돌리면 같은 결과가 나온다.</p>
+    <ol class="steps">
+      <li><h4><code>01_fetch_icio.py</code> — 원본 내려받기</h4><p>연도묶음 zip과 문서를 받아 <code>data/raw/</code>에 그대로 둔다. 받은 뒤 수정하지 않는다. sha256을 <code>_manifest.json</code>에 적는다.</p></li>
+      <li><h4><code>02_icio_to_parquet.py</code> — CSV → 연도별 parquet</h4><p>4,053×4,538 행렬을 long 형태로 편다. 값이 정확히 0인 칸은 담지 않는다(Z의 38%). 행에 있던 <code>TLS</code>·<code>VA</code>·<code>OUT</code>은 국가×산업 축으로 돌려 담는다 — 재배치이지 파생이 아니다.</p></li>
+      <li><h4><code>03_parquet_to_duckdb.py</code> — fact 적재</h4><p><code>fact_icio_z</code>·<code>fact_icio_fd</code>·<code>fact_icio_va</code>. <code>edition</code>을 키에 넣고, 다시 돌리면 그 판의 행만 갈아 끼운다.</p></li>
+      <li><h4><code>04_build_dims.py</code>·<code>04b_fetch_ksic.py</code> — 참조 표</h4><p>국가·산업·최종수요유형·ISIC·KSIC 사전. KSIC은 포털 분류검색 204쪽을 긁어 전 단계(중·소·세·세세분류)를 모은다.</p></li>
+      <li><h4><code>05_build_maps.py</code> — 연계표</h4><p>핵심 산출물인 <code>map_ksic_icio</code>를 만든다. 자세한 것은 <a href="#" onclick="showTab('link');return false">분류 연계</a> 탭.</p></li>
+      <li><h4><code>06_compute_gvc.py</code> — GVC 지표</h4><p>연도마다 4,050×4,050 레온티에프 역행렬을 구해 지표를 낸다. 병목은 행렬 연산이 아니라 DuckDB에서 Z를 읽는 부분이다.</p></li>
+      <li><h4><code>07_compute_loo.py</code> — leave-one-out</h4><p>같은 산업·연도의 자국을 뺀 타국 지표. 도구변수용이다.</p></li>
+      <li><h4><code>08_validate_tiva.py</code> — OECD 공표치 대조</h4><p>SDMX에서 TiVA 다섯 측정치를 받아 <code>mart_tiva_check</code>를 만든다.</p></li>
+      <li><h4><code>09_validate.py</code> — 통합 검증</h4><p>스물일곱 항목을 PASS/WARN/FAIL로 판정한다. FAIL이 하나라도 있으면 종료코드 1이다. 검증을 여러 파일로 분열시키지 않는다.</p></li>
+      <li><h4><code>10_export_lite.py</code> — 교육용 축소판</h4><p>원표 둘을 뺀 판을 따로 낸다.</p></li>
+    </ol>
+
+    <h3>계층 설계</h3>
+    <p>접두사가 그 표의 성격을 말한다. 무엇을 믿고 무엇을 의심할지가 이름에서 갈린다.</p>
+    <div class="tblwrap">
+      <table class="sch">
+        <thead><tr><th>접두사</th><th>성격</th><th>안에 있는 것</th></tr></thead>
+        <tbody>
+          <tr><td><code>fact_</code></td><td>OECD 원값 그대로</td><td>중간재 거래, 최종수요, 생산물세·부가가치·총산출. 파생 컬럼 없음</td></tr>
+          <tr><td><code>dim_</code></td><td>코드·명칭·계층</td><td>국가(개체), 산업, 최종수요 유형, ISIC Rev.4, KSIC</td></tr>
+          <tr><td><code>map_</code></td><td>분류 연계</td><td>ISIC→ICIO, KSIC→ISIC, KSIC→ICIO, KSIC 차수 간</td></tr>
+          <tr><td><code>mart_</code></td><td>계산된 지표</td><td>GVC 핵심 지표, 양자 지표, leave-one-out, TiVA 대조. <code>edition</code>+<code>method_version</code>이 키에 있다</td></tr>
+          <tr><td><code>meta_</code></td><td>이력</td><td>판 정보, 내려받은 원본의 URL·바이트·sha256</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>판이 둘이다</h3>
+    <p>OECD는 같은 해의 표를 두 벌 낸다. 표준판(SML)은 나라마다 하나씩이고, 확장판(EXT)은 중국과 멕시코를 가공무역 부문과 그 밖으로 쪼갠 표다. 가공무역은 수입한 부품을 조립해 되수출하는 것이라 국내 부가가치율이 훨씬 낮다. 이 DB는 둘 다 담되 <code>edition</code>으로 갈라 둔다.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th></th><th><code>ICIO2025</code> 표준판</th><th><code>ICIO2025_EXT</code> 확장판</th></tr></thead>
+        <tbody>
+          <tr><td>개체 수</td><td>81 (80개국 + ROW)</td><td>85</td></tr>
+          <tr><td>중국·멕시코</td><td>하나씩</td><td><code>CN1</code>/<code>CN2</code>, <code>MX1</code>/<code>MX2</code>로 갈림</td></tr>
+          <tr><td>OECD TiVA 재현</td><td>중국·멕시코가 어긋남</td><td>전 측정치·전 개체 재현</td></tr>
+          <tr><td>쓰기 편한 정도</td><td>단순</td><td>개체를 경제권으로 접어야 함</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warn"><b>확장판은 생산 쪽만 쪼갠다.</b> <code>CHN</code>·<code>MEX</code> 행은 값이 전부 0이지만 최종수요 열은 여전히 <code>CHN</code>·<code>MEX</code>다. 그래서 <code>CN1 → CHN</code> 최종수요는 국내 거래이지 수출이 아니다. 개체 이름만 보고 <code>src_cty &lt;&gt; dst_cty</code>로 수출을 세면 2022년 세계 수출이 27.1조에서 45.2조로 부풀어 오른다. 이 DB는 <code>dim_icio_entity.economy</code>(경제권)를 두어 <code>CN1</code>·<code>CN2</code> → <code>CHN</code>으로 묶고, 「자국」과 「수출」의 경계를 그것으로 잡는다.</div>
+    <p>경제권 기준으로 세면 두 판의 세계 총수출이 소수점까지 맞는다 — 2022년 27,110,736.5 대 27,110,736.9(백만 달러). 판이 달라도 국경을 넘는 거래는 같고, 달라지는 것은 그 거래의 부가가치 원천 배분뿐이다.</p>
+
+    <h3>실측으로 확정한 것</h3>
+    <p>구축 과정에서 문서만으로는 알 수 없어 자료를 직접 재어 결론 낸 것들이다. 한 번 결론 난 것은 다시 논하지 않는다.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>물음</th><th>결론</th><th>근거</th></tr></thead>
+        <tbody>
+          <tr><td>부가가치 계수에 순생산물세(TLS)를 넣나</td><td>넣는다. <code>v = (VA+TLS)/X</code></td><td>TiVA의 <code>VALU</code>가 ICIO의 <code>VA+TLS</code>와 상대오차 최대 0.0%로 일치. <code>VA</code>만 쓰면 중위 2.86% 어긋난다</td></tr>
+          <tr><td>표준판에서 중국 DVA가 왜 안 맞나</td><td>OECD가 확장판에서 계산하기 때문. 결함이 아니다</td><td>확장판으로 계산하니 중국 C26 2022년 DVA 467,208.3 대 공표치 467,208.4</td></tr>
+          <tr><td>KSIC→ICIO에 산출액 비례배분 가중치가 필요한가</td><td>필요 없다</td><td>세분류·세세분류에서 1:n이 0개(11차 1,205개·10차 1,196개 전수)</td></tr>
+          <tr><td>균형 항등식이 왜 안 맞나</td><td>원표 자체가 1e-3 안에서만 균형한다</td><td>어긋남이 <code>L</code>(부동산)·<code>T</code>(가구 내 고용)에 몰린다 — 시장가격 없는 산출을 품는 산업이다</td></tr>
+          <tr><td>정확한 0을 빼면 손실인가</td><td>손실 아니다</td><td>격자가 <code>dim_icio_entity</code>×<code>dim_icio_ind</code>로 100% 복원된다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 분류 연계 ============ -->
+  <section role="tabpanel" id="tab-link" aria-labelledby="t-link">
+    <h2 class="h">분류 연계</h2>
+    <p class="sub lead">한국 기업 자료의 KSIC 코드를 ICIO 50산업에 붙이는 표를 어떻게 만들었는가.</p>
+
+    <div class="panel">
+      <p>이 DB의 지표는 국가×산업 수준이다. 그것을 한국 기업 미시자료(기업활동조사·기업특성별 무역통계)에 붙이려면 KSIC 코드에서 ICIO 산업으로 가는 표가 있어야 한다. 그런데 그 표는 공개돼 있지 않다. 이 탭은 그것을 어떻게 만들었고 얼마나 믿을 수 있는지를 적는다.</p>
+    </div>
+
+    <h3>통계청은 KSIC↔ISIC 연계표를 내지 않는다</h3>
+    <p>먼저 사실 확인부터 했다. 통계분류포털의 한국표준산업분류 「연계표」 자료실에 있는 것은 KSIC 차수 간 연계표뿐이다 — 11차-10차, 10차-9차, 09차, 08차, 1991–1998, 다섯 건이 전부다. 「연계표 검색」 기능의 차수 선택지도 <code>11</code>과 <code>10</code> 둘뿐이다. 즉 KSIC과 국제표준산업분류를 잇는 공식 파일은 존재하지 않는다. 우리가 만들어야 한다.</p>
+    <div class="note"><b>현행은 11차다.</b> 제11차 개정은 2024-01-01 고시, 2024-07-01 시행이며 세세분류가 1,205개다. 10차(2017년 시행, 1,196개)도 함께 담아 두었고 둘을 잇는 공식 연계표(<code>map_ksic_vintage</code>)도 들어 있다. 조사연도가 2024년 앞뒤로 걸치면 차수를 연도에 맞춰 골라야 한다.</p></div>
+
+    <h3>중분류 번호가 그대로 같지 않다</h3>
+    <p>KSIC은 ISIC Rev.4를 기초로 만들었으니 「2자리가 곧 2자리」일 것 같지만, 실측해 보면 아니다. KSIC 중분류는 77개, ISIC division은 88개이고 번호가 어긋나는 곳이 여럿이다. 특히 광업과 서비스업에서 갈린다.</p>
+    <div class="tblwrap">
+      <table>
+        <caption>KSIC 중분류가 ISIC division과 어긋나는 자리 (일부)</caption>
+        <thead><tr><th>KSIC</th><th>항목명</th><th>ISIC Rev.4</th><th>ICIO 산업</th></tr></thead>
+        <tbody>
+          <tr><td><code>06</code></td><td>금속 광업</td><td><code>07</code> (06 아님)</td><td><code>B07</code></td></tr>
+          <tr><td><code>07</code></td><td>비금속광물 광업</td><td><code>08</code></td><td><code>B08</code></td></tr>
+          <tr><td><code>08</code></td><td>광업 지원 서비스업</td><td><code>09</code></td><td><code>B09</code></td></tr>
+          <tr><td><code>611</code></td><td>공영 우편업</td><td><code>53</code></td><td><code>H53</code> — 대분류 J가 아니라 H로 간다</td></tr>
+          <tr><td><code>70</code>–<code>73</code></td><td>전문·과학·기술 서비스업</td><td><code>69</code>–<code>75</code></td><td><code>M</code></td></tr>
+          <tr><td><code>74</code>–<code>76</code></td><td>사업시설관리·사업지원·임대</td><td><code>77</code>–<code>82</code></td><td><code>N</code></td></tr>
+          <tr><td><code>34</code></td><td>산업용 기계·장비 수리업</td><td><code>33</code></td><td><code>C31T33</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub">그래서 자동 매핑을 쓰지 않았다. <code>scripts/05_build_maps.py</code>의 <code>RULES</code>가 정본이고, 예외마다 근거를 문자열로 적어 두었다. 규칙은 긴 접두사가 이긴다.</p>
+
+    <h3>ICIO가 division보다 잘게 자르는 자리</h3>
+    <p>ICIO 50산업은 대체로 ISIC division의 묶음이지만 네 군데에서 더 잘게 갈린다. 그 자리는 KSIC 소분류·세분류에서 결정된다.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>ICIO가 가르는 것</th><th>KSIC 어디서 갈리나</th></tr></thead>
+        <tbody>
+          <tr><td><code>C24A</code> 철강 / <code>C24B</code> 비철·귀금속</td><td>소분류 <code>241</code>→A, <code>242</code>→B. 주조업은 세분류 <code>2431</code>→A, <code>2432</code>→B (KSIC 코드가 ISIC과 그대로 일치한다)</td></tr>
+          <tr><td><code>C301</code> 선박·보트 / <code>C302T309</code> 기타 운송장비</td><td>소분류 <code>311</code>→C301, <code>312</code>·<code>313</code>·<code>319</code>→C302T309</td></tr>
+          <tr><td><code>H53</code> 우편 / <code>J61</code> 통신</td><td>소분류 <code>611</code>→H53, <code>612</code>→J61</td></tr>
+          <tr><td><code>C26</code> 전자·광학 / <code>C31T33</code> 기타 제조</td><td>KSIC 27은 대부분 C26. 예외는 세분류 <code>2719</code> 기타 의료용 기기(= ISIC 325)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>그래서 가중치가 필요 없다</h3>
+    <p>원래 계획서는 1:n이 남는 KSIC 코드에 경제총조사·광업제조업조사 산출액으로 비례배분 가중치를 붙이려 했다. 절차를 뒤집어 1:n이 실제로 몇 개나 남는지부터 셌다. 결과는 이렇다.</p>
+    <div class="tblwrap">
+      <table>
+        <caption>KSIC 단계별 1:n 코드 수 (전수)</caption>
+        <thead><tr><th>단계</th><th class="r">11차 코드</th><th class="r">1:n</th><th class="r">10차 코드</th><th class="r">1:n</th></tr></thead>
+        <tbody>
+          <tr><td>중분류 (2자리)</td><td class="r">77</td><td class="r">5</td><td class="r">77</td><td class="r">5</td></tr>
+          <tr><td>소분류 (3자리)</td><td class="r">234</td><td class="r">2</td><td class="r">232</td><td class="r">2</td></tr>
+          <tr><td>세분류 (4자리)</td><td class="r">501</td><td class="r">0</td><td class="r">495</td><td class="r">0</td></tr>
+          <tr><td>세세분류 (5자리)</td><td class="r">1,205</td><td class="r">0</td><td class="r">1,196</td><td class="r">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><b>세분류 아래에서는 1:n이 하나도 없다.</b> 기업활동조사와 기업특성별 무역통계는 세세분류로 부호화되므로, 결합에 가중치를 곱할 일이 없다. 비례배분은 오차를 들여오면서 얻는 것이 없다는 뜻이라 아예 만들지 않았다. 상위 단계에서 남는 1:n(중분류 <code>05</code>·<code>24</code>·<code>27</code>·<code>31</code>·<code>61</code>, 소분류 <code>243</code>·<code>271</code>)은 당연한 것이고, 그 경우 <code>weight</code>를 NULL로 두고 <code>n_icio</code>에 몇 갈래인지만 적는다 — 어떻게 나눌지는 분석자의 판단이다.</p>
+    <p>ICIO 50산업 중 KSIC이 닿지 않는 산업은 없다. 반대로 대응 산업이 없는 KSIC은 <code>99001</code>·<code>99009</code>(국제 및 외국기관, ISIC 99) 둘뿐인데, ICIO 50산업에 그 산업이 아예 없기 때문이다.</p>
+
+    <h3>쓰는 법</h3>
+    <p>기업 패널의 KSIC 세세분류에 한국 산업 지표를 붙이는 표준 결합이다. 가중치가 없으므로 그냥 조인하면 된다.</p>
+    <pre><code>SELECT f.*, c.backward, c.forward, c.upstreamness
+FROM firm_panel f
+JOIN map_ksic_icio m
+     ON m.ksic       = f.ksic5
+    AND m.ksic_level = '세세분류'
+    AND m.ksic_rev   = CASE WHEN f.year &gt;= 2024 THEN '11' ELSE '10' END
+JOIN mart_gvc_core c
+     ON c.cty = 'KOR' AND c.ind = m.icio_ind AND c.year = f.year
+    AND c.edition = 'ICIO2025' AND c.method_version = 'v1'</code></pre>
+    <p class="sub">통계청 RDC 반입용 전체 스펙은 저장소의 <code>rdc/join_spec.sql</code>에 있다 — 미매칭 기업을 개수와 매출액 양쪽으로 세는 점검 쿼리와, 산업 수준 군집화에 관한 주의가 함께 들어 있다.</p>
+    <div class="note warn"><b>붙지 않은 기업을 반드시 센다.</b> 그것도 개수만이 아니라 매출·수출 기준 비중으로. 종수가 적어도 금액이 크면 결함이고, 종수가 많아도 금액이 미미하면 착시다.</div>
+  </section>
+
+  <!-- ============ 데이터 함정 ============ -->
+  <section role="tabpanel" id="tab-traps" aria-labelledby="t-traps">
+    <h2 class="h">데이터 함정</h2>
+    <p class="sub lead">모르고 쓰면 틀리는 것들. 대부분 원표의 성질이지 이 DB의 결함이 아니다.</p>
+
+    <h3>먼저 알아야 할 셋</h3>
+    <div class="traps">
+      <div class="trap hot">
+        <div class="tref">판</div>
+        <h4>판을 섞지 말 것</h4>
+        <p>표준판과 확장판은 다른 자료다. 한 회귀에 섞으면 안 되고, 논문에는 쓴 <code>edition</code>과 <code>method_version</code>을 함께 적는다. 판이 갱신되면 OECD가 전 기간을 재추정하므로 판 간 비교·연결도 금지다.</p>
+      </div>
+      <div class="trap hot">
+        <div class="tref">확장판</div>
+        <h4>개체 ≠ 나라</h4>
+        <p>확장판에서 <code>CN1</code>·<code>CN2</code>는 중국의 두 부문이다. 개체 단위로 세면 CN2의 부가가치가 CN1 수출에서 외국분으로, CN1→CHN 최종수요가 수출로 잡힌다. 「자국」의 경계는 <code>dim_icio_entity.economy</code>다.</p>
+      </div>
+      <div class="trap hot">
+        <div class="tref">가격</div>
+        <h4>경상가격이다</h4>
+        <p>실질화돼 있지 않다. 비중 지표(후방·전방참여도, DVA 비중)는 그대로 쓸 수 있으나 금액 수준의 연도 간 비교는 디플레이터가 필요하다. 원자재 가격이 튄 해의 후방참여도 상승에는 가격 요인이 섞여 있다.</p>
+      </div>
+    </div>
+
+    <h3>원표의 성질</h3>
+    <div class="traps">
+      <div class="trap">
+        <div class="tref">추정</div>
+        <h4>연도별 표는 추정치다</h4>
+        <p>기준연도 공급사용표 사이를 보간·균형화한 값이다. 나라·연도별로 원자료가 실제로 있었는지는 배포본의 annex Table 3이 보여 준다 — 빈칸이 많다. 연도 간 변동을 구조 변화로 해석하는 연구는 이 사실을 밝혀야 한다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">균형</div>
+        <h4>항등식이 정확히 안 맞는다</h4>
+        <p>소수 4자리로 반올림돼 배포되는 데다 원표 자체가 1e-3 안쪽에서만 균형한다. 어긋남은 <code>L</code>(부동산)·<code>T</code>(가구 내 고용)에 몰린다 — 귀속임대료처럼 시장가격 없는 산출을 품는 산업이다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">부호</div>
+        <h4>음수가 있다</h4>
+        <p>최종수요의 <code>INVNT</code>(재고증감)는 음수가 될 수 있다. 부가가치가 음수인 국가·산업도 있다 — 2017·2018년 키프로스 항공운송이 그렇고, 그 칸은 DVA 비중이 음수로 나온다. 고치지 않았다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">범위</div>
+        <h4>2022년까지다</h4>
+        <p>OECD nowcast는 커버리지와 부문 수가 달라 본표와 섞지 않았다. 넣는다면 별도 <code>edition</code>이어야 한다.</p>
+      </div>
+    </div>
+
+    <h3>지표를 읽을 때</h3>
+    <div class="traps">
+      <div class="trap">
+        <div class="tref">정의</div>
+        <h4>DVA에 되돌아온 자국분이 들어 있다</h4>
+        <p><code>dva_share</code>는 자국 부가가치가 나갔다가 다시 돌아온 몫(returned domestic value added)을 자국분에 포함한다. 그것을 떼려면 KWW/WWZ 분해가 필요하고 이 DB에는 아직 없다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">방향</div>
+        <h4><code>fva_from_partner_share</code>는 「오는」 쪽이다</h4>
+        <p>상대국 으로 가는 수출의 성질이 아니라 상대국 에서 오는 투입의 성질이다. 「대일 후방 의존도」가 이 값이다. 가는 쪽은 <code>exgr_to_partner</code>다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">단위</div>
+        <h4>관측단위는 국가×산업이다</h4>
+        <p>산업 지표를 기업에 부여하면 shift-share 구조이고, 처리 분산이 산업 수준(50개 이하)에 있다. 표준오차는 산업 수준에서 군집화해야 한다. 이것은 DB가 아니라 분석 계층의 책임이다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">계수</div>
+        <h4>부가가치에 순생산물세가 들어 있다</h4>
+        <p><code>v = (VA+TLS)/X</code>다. 그래야 수출이 남김없이 분해된다. OECD 공표 <code>VALU</code>도 같은 정의임을 실측으로 확인했다. <code>VA</code>만 쓰고 싶다면 <code>mart_gvc_core</code>에 <code>va</code>·<code>tls</code>가 따로 들어 있다.</p>
+      </div>
+    </div>
+
+    <h3>질의할 때</h3>
+    <div class="traps">
+      <div class="trap">
+        <div class="tref">저장</div>
+        <h4>정확한 0은 저장돼 있지 않다</h4>
+        <p>Z의 38%가 정확히 0이라 빼고 담았다. 없는 조합은 0으로 읽으면 된다. 격자는 <code>dim_icio_entity</code>×<code>dim_icio_ind</code>로 완전히 복원되므로 손실이 아니다. 다만 <code>LEFT JOIN</code> 없이 세면 칸 수가 모자라 보인다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">집계</div>
+        <h4>비중을 평균하지 말 것</h4>
+        <p>나라나 산업을 묶어 볼 때는 금액을 합치고 다시 나눈다. <code>avg(dva_share)</code>는 뜻이 없다. <code>sum(dva_share*exgr)/sum(exgr)</code>가 맞다. 확장판에서 CN1·CN2를 합칠 때도 마찬가지다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">필터</div>
+        <h4><code>edition</code>을 안 걸면 두 판이 섞인다</h4>
+        <p>한 표에 두 판이 함께 들어 있다. <code>WHERE edition='ICIO2025'</code>를 빠뜨리면 행수가 두 배가 되고 합계가 두 배로 나온다. <code>method_version</code>도 같이 거는 습관을 들이는 편이 낫다.</p>
+      </div>
+      <div class="trap">
+        <div class="tref">DuckDB</div>
+        <h4>예약어 주의</h4>
+        <p><code>FULL</code>은 별칭으로 못 쓴다(FULL JOIN). <code>out</code>·<code>end</code> 같은 이름도 따옴표가 필요할 수 있다. 이 DB의 <code>fact_icio_va.out</code>(총산출)이 그 예다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 받기·사용 ============ -->
+  <section role="tabpanel" id="tab-use" aria-labelledby="t-use">
+    <h2 class="h">받기·사용</h2>
+    <p class="sub lead">DB를 받아 로컬 주피터에서 분석하려는 연구자에게 필요한 것을 안내한다.</p>
+
+    <p><b>먼저 알아둘 것 — 받을 것이 둘로 나뉜다.</b> 이 DB는 두 부분으로 배포된다. 하나는 스크립트·문서·폴더 구조가 담긴 GitHub 저장소이고, 다른 하나는 DB 파일 자체다. DB 파일은 용량이 커서 GitHub 저장소에 넣을 수 없기 때문에(100MB 한도), 저장소는 clone으로 받고 DB 파일은 Releases에서 따로 받아 저장소 안 정해진 자리에 놓는 방식이다.</p>
+    <p>전체 흐름은 네 단계다 — 패키지 설치 → 저장소 받기 → DB 파일 받아 배치 → 주피터에서 열기. DB를 재구축하는 것이 아니라 이미 만들어진 DB를 받아 분석만 하므로 준비물은 가볍다(파이썬 패키지 4개). 순서대로 따라 하면 된다.</p>
+    <p><span class="ver"><!-- DB_VERSION:START -->로컬 DB 기준 4.2GB (게시본 확인 안 함)<!-- DB_VERSION:END --></span></p>
+
+    <ol class="steps">
+      <li>
+        <h4>패키지 설치</h4>
+        <p>터미널(명령 프롬프트 / PowerShell / 터미널)에서 아래를 실행한다. 분석만 하므로 이 4개면 충분하다 — conda나 특정 파이썬 버전은 필요 없다.</p>
+        <pre><code>pip install duckdb pandas matplotlib jupyter</code></pre>
+      </li>
+      <li>
+        <h4>저장소 받기 (스크립트·문서)</h4>
+        <p>GitHub에서 이 저장소를 clone(또는 ZIP 다운로드 후 압축 해제)하면 <code>GVC/</code> 폴더가 생긴다. 분석에 필요한 것이 모두 이 안에 들어 있다.</p>
+        <pre><code>git clone https://github.com/pilsunchoi/GVC.git</code></pre>
+        <ul>
+          <li><code>scripts/</code> — 원본 내려받기부터 검증까지 파이프라인 열한 개</li>
+          <li><code>docs/</code> — 설계 헌법(<code>DB_구축_원칙.md</code>)과 지표 산식(<code>method.md</code>)</li>
+          <li><code>rdc/join_spec.sql</code> — 통계청 RDC 반입용 결합 스펙</li>
+          <li><code>data/processed/</code> — 지금은 비어 있는 폴더. 다음 단계에서 받을 DB를 여기에 놓는다.</li>
+          <li><code>data/external/</code> — 분류표 등 외부 자료가 들어갈 자리. 저장소에는 없고 <code>04b_fetch_ksic.py</code>가 받아 채운다.</li>
+        </ul>
+      </li>
+      <li>
+        <h4>DB 파일 받아서 배치</h4>
+        <p>앞 단계에서 저장소를 받았으니 <code>data/processed/</code> 폴더는 이미 있다(비어 있음). 이제 <a href="https://github.com/pilsunchoi/GVC/releases" target="_blank" rel="noopener">Releases 페이지</a>에서 압축된 DB를 받아 압축을 풀고, 그 파일을 <code>data/processed/</code> 자리에 놓는다. 쓰임에 따라 둘 중 하나를 고른다.</p>
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>파일</th><th class="r">크기</th><th>들어 있는 것</th><th>이럴 때</th></tr></thead>
+            <tbody>
+              <tr><td><code>gvc.duckdb</code></td><td class="r">약 4.2GB</td><td>전부. 원표 포함</td><td>지표를 다시 계산하거나 원표를 직접 다뤄야 할 때</td></tr>
+              <tr><td><code>gvc_lite.duckdb</code></td><td class="r">약 0.5GB</td><td>원표 둘(<code>fact_icio_z</code>·<code>fact_icio_fd</code>)을 뺀 나머지 전부</td><td>수업·첫 탐색. 이미 계산된 지표를 쓰는 데는 충분하다</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul>
+          <li>Windows: 7-Zip 등으로 <code>.gz</code> 압축 해제</li>
+          <li>Mac / Linux: 터미널에서 <code>gunzip gvc.duckdb.gz</code></li>
+        </ul>
+        <p class="sub">축소판으로는 지표를 재계산할 수 없다 — 원표 중간재 거래가 없으면 레온티에프 역행렬을 다시 구할 수 없기 때문이다. 무엇이 빠졌는지는 축소판 안의 <code>meta_lite</code> 표에 적어 두었다. <code>fact_icio_va</code>(총산출·부가가치)는 작고 쓸모가 많아 남겨 두었다.</p>
+      </li>
+      <li>
+        <h4>주피터에서 열기</h4>
+        <p>준비가 끝났다. 저장소 루트(<code>GVC/</code>)에서 아래를 실행하면 브라우저에 주피터가 열린다. 새 노트북을 만들어 다음 절의 접속 코드를 붙여 넣으면 바로 질의할 수 있다.</p>
+        <pre><code>jupyter notebook</code></pre>
+      </li>
+    </ol>
+
+    <h3>기본 접속 코드</h3>
+    <p>DuckDB는 파일 하나에 접속하는 방식이라 서버가 필요 없다. 아래처럼 <code>read_only=True</code>로 열면 실수로 원본을 바꿀 염려 없이 안전하게 조회만 할 수 있다. 여러 사람이 같은 파일을 동시에 읽을 때도 이 옵션이 안전하다. 작업이 끝나면 <code>con.close()</code>로 닫는다.</p>
+    <pre><code>import duckdb
+con = duckdb.connect("data/processed/gvc.duckdb", read_only=True)
+
+# 한국 전자·광학(C26)의 후방참여도 추이
+con.execute("""
+    SELECT year,
+           round(exgr, 0)          AS 수출_백만달러,
+           round(100*dva_share, 1) AS DVA비중_pct,
+           round(100*backward, 1)  AS 후방참여도_pct
+    FROM mart_gvc_core
+    WHERE cty = 'KOR' AND ind = 'C26'
+      AND edition = 'ICIO2025' AND method_version = 'v1'
+    ORDER BY year
+""").df()
+con.close()</code></pre>
+    <p>상대국별로 보려면 <code>mart_gvc_bilateral</code>을 쓴다. 아래는 한국 수출에 실린 일본 부가가치의 몫이다 — 2019년 수출규제 연구에서 「사전 대일 후방 의존도」로 쓰는 값이다.</p>
+    <pre><code>SELECT year, ind, round(100*fva_from_partner_share, 2) AS 대일의존도_pct
+FROM mart_gvc_bilateral
+WHERE cty = 'KOR' AND partner = 'JPN' AND ind = 'C26'
+  AND edition = 'ICIO2025' AND method_version = 'v1'
+ORDER BY year</code></pre>
+
+    <div class="note warn">
+      <b>단위 표기.</b> 금액은 모두 경상 백만 미국달러다. 실질화돼 있지 않으므로 금액 수준의 연도 간 비교는 디플레이터가 필요하다.<br>
+      <b>판 경계.</b> 한 표에 두 판이 함께 들어 있다. <code>WHERE edition='ICIO2025'</code>를 빠뜨리면 행수가 두 배가 되고 합계도 두 배로 나온다. <code>method_version</code>도 함께 거는 습관을 들이는 편이 낫다. 두 판의 차이는 <a href="#" onclick="showTab('build');return false">DB 구축</a> 탭에 있다.<br>
+      <b>범위 경계.</b> 1995–2022년이다. OECD nowcast는 커버리지와 부문 수가 달라 넣지 않았다. 연도별 표가 기준연도 공급사용표 사이를 보간한 추정치라는 점도 함께 읽어야 한다.<br>
+      <b>집계 주의.</b> 나라나 산업을 묶어 볼 때는 비중을 평균하지 말고 금액을 합쳐 다시 나눈다 — <code>sum(dva_share*exgr)/sum(exgr)</code>가 맞다. 이런 함정은 <a href="#" onclick="showTab('traps');return false">데이터 함정</a> 탭에 모아 두었다.<br>
+      <b>추정 표시.</b> <code>map_ksic_isic</code>와 <code>map_ksic_icio</code>는 공표된 연계표가 아니라 이 DB가 만든 대응이다. 통계청·OECD의 공식 판단이 아니며, 규칙과 그 근거는 <code>scripts/05_build_maps.py</code>에 적혀 있다. 만든 방법은 <a href="#" onclick="showTab('link');return false">분류 연계</a> 탭에 있다.
+    </div>
+
+    <h3>표 전체 목록</h3>
+    <p>DB에 들어 있는 표를 계층 순서로 모두 적는다. 행수는 두 판을 합친 것이다.</p>
+<!-- DB_INVENTORY:START -->
+    <div class="tblwrap">
+      <table class="inv">
+        <thead><tr><th>표</th><th>내용</th><th class="r">행수</th><th class="r">기간</th><th>단위·주의</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="5">원표 (fact) — OECD 값 그대로</td></tr>
+          <tr><td><code>fact_icio_z</code></td><td>중간재 거래. 국가·산업 → 국가·산업</td><td class="r">515,411,961</td><td class="r s">1995–2022</td><td class="s">백만 USD 경상. 정확한 0은 담지 않음</td></tr>
+          <tr><td><code>fact_icio_fd</code></td><td>최종수요. 국가·산업 → 국가·6유형</td><td class="r">62,685,391</td><td class="r s">1995–2022</td><td class="s">백만 USD 경상. INVNT는 음수 가능</td></tr>
+          <tr><td><code>fact_icio_va</code></td><td>생산물세－보조금(TLS), 부가가치(VA), 총산출(OUT)</td><td class="r">232,400</td><td class="r s">1995–2022</td><td class="s">백만 USD 경상</td></tr>
+          <tr class="grp"><td colspan="5">참조 (dim)</td></tr>
+          <tr><td><code>dim_icio_entity</code></td><td>ICIO 개체와 그 경제권(economy)</td><td class="r">166</td><td class="r s"></td><td class="s">확장판에서 CN1·CN2 → CHN</td></tr>
+          <tr><td><code>dim_icio_ind</code></td><td>ICIO 50산업과 대응 ISIC Rev.4</td><td class="r">100</td><td class="r s"></td><td class="s">판별로 따로 있다</td></tr>
+          <tr><td><code>dim_icio_fd</code></td><td>최종수요 6유형</td><td class="r">6</td><td class="r s"></td><td class="s">HFCE·NPISH·GGFC·GFCF·INVNT·DPABR</td></tr>
+          <tr><td><code>dim_isic4</code></td><td>ISIC Rev.4 전 계층</td><td class="r">766</td><td class="r s"></td><td class="s">UNSD 공식 구조 파일</td></tr>
+          <tr><td><code>dim_ksic</code></td><td>KSIC 11차·10차 세세분류</td><td class="r">2,401</td><td class="r s"></td><td class="s">11차 1,205개 · 10차 1,196개</td></tr>
+          <tr class="grp"><td colspan="5">연계 (map)</td></tr>
+          <tr><td><code>map_isic_icio</code></td><td>ISIC Rev.4 → ICIO 50산업</td><td class="r">196</td><td class="r s"></td><td class="s">OECD ReadMe 에서 기계적으로 폄</td></tr>
+          <tr><td><code>map_ksic_isic</code></td><td>KSIC 세세분류 → ISIC Rev.4</td><td class="r">2,401</td><td class="r s"></td><td class="s"><b>우리가 만든 대응</b>. 공표표 아님</td></tr>
+          <tr><td><code>map_ksic_icio</code></td><td>KSIC → ICIO. <b>핵심 산출물</b></td><td class="r">4,031</td><td class="r s"></td><td class="s">세분류 아래 1:n 0개 → 가중치 불필요</td></tr>
+          <tr><td><code>map_ksic_vintage</code></td><td>KSIC 11차 ↔ 10차</td><td class="r">2,462</td><td class="r s"></td><td class="s">통계청 공식 연계표. 분할은 가중치 없음</td></tr>
+          <tr class="grp"><td colspan="5">지표 (mart) — 계산된 값</td></tr>
+          <tr><td><code>mart_gvc_core</code></td><td>DVA/FVA 비중, 후방·전방참여도, 상류도·하류도</td><td class="r">232,400</td><td class="r s">1995–2022</td><td class="s">국가×산업×연도. edition+method_version 키</td></tr>
+          <tr><td><code>mart_gvc_bilateral</code></td><td>상대국별 수출과 상대국 부가가치 함량</td><td class="r">17,680,480</td><td class="r s">1995–2022</td><td class="s">상대는 <b>경제권</b> 단위</td></tr>
+          <tr><td><code>mart_gvc_loo</code></td><td>같은 산업·연도의 자국 제외 타국 평균</td><td class="r">217,960</td><td class="r s">1995–2022</td><td class="s">도구변수용. 빼는 단위는 경제권</td></tr>
+          <tr><td><code>mart_tiva_check</code></td><td>자체 산출치 ↔ OECD TiVA 공표치 대조</td><td class="r">1,106,560</td><td class="r s">1995–2022</td><td class="s">받은 사람이 직접 다시 볼 수 있다</td></tr>
+          <tr class="grp"><td colspan="5">이력 (meta)</td></tr>
+          <tr><td><code>meta_edition</code></td><td>판 메타데이터</td><td class="r">2</td><td class="r s"></td><td class="s">개체·산업 수, 커버리지, 단위</td></tr>
+          <tr><td><code>meta_source</code></td><td>내려받은 원본의 URL·바이트·sha256</td><td class="r">20</td><td class="r s"></td><td class="s">무엇을 써서 만들었는지의 근거</td></tr>
+        </tbody>
+      </table>
+    </div>
+<!-- DB_INVENTORY:END -->
+
+    <h3>어디서 받았나</h3>
+    <p>이 저장소는 원표를 재배포하지 않는다 — 스크립트가 아래에서 직접 받는다. 받은 파일의 URL·바이트·sha256은 DB의 <code>meta_source</code> 표에 남아 있다.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>자료</th><th>제공</th><th>받는 곳</th><th>이용조건</th></tr></thead>
+        <tbody>
+          <tr><td>ICIO 2025판 원표</td><td>OECD STI</td><td><code>webfs-sti.oecd.org/files/STI-PIE/ICIO/2025/</code></td><td>OECD 이용약관</td></tr>
+          <tr><td>TiVA 2025판 지표</td><td>OECD STI</td><td><code>sdmx.oecd.org/sti-public/rest/</code></td><td>OECD 이용약관</td></tr>
+          <tr><td>ISIC Rev.4 구조</td><td>UN 통계국</td><td><code>unstats.un.org</code></td><td>공개</td></tr>
+          <tr><td>KSIC 11차·10차</td><td>국가데이터처</td><td>통계분류포털 <code>kssc.kostat.go.kr</code></td><td>공공누리</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warn"><b>내려받기가 막히는 곳이 있다.</b> <code>www.oecd.org</code>는 Cloudflare가 스크립트 접근을 막는다(403) — 파일 자체는 <code>webfs-sti.oecd.org</code>에 있고 여기는 열려 있으나 브라우저 User-Agent를 붙여야 한다. TiVA는 <code>sdmx.oecd.org/sti-public/rest/</code>로 받는다(<code>/public/</code>은 404다). 통계분류포털은 인증서 주체가 맞지 않아 https 검증이 실패하므로 http로 받는다. 사이트가 <code>kssc.mods.go.kr</code>로 이전 중이라 URL이 깨질 수 있는데, 그때는 <code>04b_fetch_ksic.py</code>의 <code>FILES</code> 상수를 고친다. 제공기관의 자료를 재배포하지 않으려고 <code>data/external/</code>은 저장소에 담지 않았다 — 스크립트가 언제든 다시 받는다.</div>
+
+    <h3>직접 다시 만들려면</h3>
+    <p>DB를 받지 않고 처음부터 만들 수도 있다.</p>
+    <pre><code>python scripts/01_fetch_icio.py
+python scripts/02_icio_to_parquet.py
+python scripts/03_parquet_to_duckdb.py
+python scripts/04_build_dims.py
+python scripts/04b_fetch_ksic.py
+python scripts/05_build_maps.py
+python scripts/06_compute_gvc.py
+python scripts/07_compute_loo.py
+python scripts/08_validate_tiva.py
+python scripts/09_validate.py
+python scripts/10_export_lite.py</code></pre>
+    <p>확장판은 같은 파이프라인에 판을 지정해 넣는다. <code>02</code>·<code>04</code>는 <code>--variant EXT</code>, 나머지는 <code>--edition ICIO2025_EXT</code>다. 각 스크립트는 그 판의 행만 갈아 끼우므로 한쪽을 다시 돌려도 다른 쪽이 지워지지 않는다.</p>
+  </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>출처.</b> OECD가 공개한 국가간 산업연관표(ICIO)와 TiVA 지표, UN 통계국의 ISIC Rev.4, 국가데이터처(옛 통계청) 통계분류포털의 한국표준산업분류를 이용했다. 자료별 출처와 받는 곳은 <a href="#" onclick="showTab('use');return false">받기·사용</a> 탭의 「어디서 받았나」에 있다. 인용할 때는 OECD ICIO 2025판을 함께 밝힌다. OECD·UN·국가데이터처가 이 DB를 후원하거나 특수 관계에 있지 않다. 이 저장소의 코드와 문서는 <a href="https://github.com/pilsunchoi/GVC/blob/main/LICENSE" target="_blank" rel="noopener">MIT 라이선스</a>를 따르며, 원자료는 그 대상이 아니다.</p>
+  </div>
+</footer>
+
+<script>
+  var TABS = ["overview","build","link","traps","use"];
+  function showTab(name){
+    TABS.forEach(function(t){
+      var btn = document.getElementById("t-"+t);
+      var panel = document.getElementById("tab-"+t);
+      var on = (t === name);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+      panel.classList.toggle("active", on);
+    });
+    if (window.scrollY > 0) window.scrollTo({top:0, behavior:"auto"});
+  }
+  TABS.forEach(function(t){
+    document.getElementById("t-"+t).addEventListener("click", function(){ showTab(t); });
+  });
+</script>
