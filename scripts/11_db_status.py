@@ -70,6 +70,7 @@ INVENTORY: list[tuple[str, list[tuple[str, str, str]]]] = [
     ("지표 (mart) — 계산된 값", [
         ("mart_gvc_core", "DVA/FVA 비중, 후방·전방참여도, 상류도·하류도", "국가×산업×연도. edition+method_version 키"),
         ("mart_gvc_bilateral", "상대국별 수출과 상대국 부가가치 함량", "상대는 **경제권** 단위"),
+        ("mart_gvc_import_va", "수입에 체화된 상대국 부가가치와 같은 모집단의 총액", "총액 기준과 부가가치 기준을 직접 견주기 위한 표"),
         ("mart_gvc_loo", "같은 산업·연도의 자국 제외 타국 평균", "도구변수용. 빼는 단위는 경제권"),
         ("mart_tiva_check", "자체 산출치 ↔ OECD TiVA 공표치 대조", "받은 사람이 직접 다시 볼 수 있다"),
     ]),

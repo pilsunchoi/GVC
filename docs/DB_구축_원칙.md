@@ -390,6 +390,7 @@ GVC/
 │   ├── 04_build_dims.py            (dim_icio_*, dim_isic4, dim_ksic)
 │   ├── 05_build_maps.py            (map_isic_icio, map_ksic_isic, map_ksic_icio)
 │   ├── 06_compute_gvc.py           (mart_gvc_core, mart_gvc_bilateral)
+│   ├── 06b_compute_import_va.py    (mart_gvc_import_va)
 │   ├── 07_compute_loo.py           (mart_gvc_loo)
 │   ├── 08_validate_tiva.py         (mart_tiva_check)
 │   ├── 09_validate.py              (통합 검증)

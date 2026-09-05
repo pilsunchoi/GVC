@@ -267,6 +267,34 @@ def check_mart(con, ed: str) -> None:
         record("mart", "mart_gvc_loo 적재", "PASS" if r[0] > 0 else "WARN",
                f"{r[0]:,}행, 타국 수 {r[1]}–{r[2]}")
 
+    if "mart_gvc_import_va" in tables:
+        r = con.execute(f"""
+            SELECT count(*), count(DISTINCT year) FROM mart_gvc_import_va WHERE edition='{ed}'""").fetchone()
+        record("mart", "mart_gvc_import_va 적재", "PASS" if r[0] > 0 else "WARN",
+               f"{r[0]:,}행, {r[1]}개 연도")
+        # Σ_p 부가가치 = 총수입 (method.md §7b). src_share 의 행 합이 1 이므로 항등식이다.
+        r = con.execute(f"""
+            WITH t AS (
+              SELECT year, cty, sum(imp_from_partner) g, sum(va_from_partner) v
+              FROM mart_gvc_import_va WHERE edition='{ed}' GROUP BY 1,2)
+            SELECT max(abs(v-g)/g) FROM t WHERE g > 0""").fetchone()[0]
+        record("mart", "수입의 부가가치 분해가 닫힘", "PASS" if (r or 1) < 1e-9 else "FAIL",
+               f"상대오차 최대 {r:.2e}")
+        # 총액 기준은 mart_gvc_bilateral 의 상대국별 수출과 같은 값이어야 한다
+        r = con.execute(f"""
+            WITH a AS (
+              SELECT i.year, i.cty, i.partner, i.imp_from_partner v
+              FROM mart_gvc_import_va i WHERE i.edition='{ed}'),
+            b AS (
+              SELECT x.year, e.economy cty, p.economy partner, sum(x.exgr_to_partner) v
+              FROM mart_gvc_bilateral x
+              JOIN dim_icio_entity p ON p.edition=x.edition AND p.code=x.cty
+              JOIN dim_icio_entity e ON e.edition=x.edition AND e.code=x.partner
+              WHERE x.edition='{ed}' GROUP BY 1,2,3)
+            SELECT max(abs(a.v-b.v)) FROM a JOIN b USING (year, cty, partner)""").fetchone()[0]
+        record("mart", "수입 총액이 bilateral 의 상대국별 수출과 일치",
+               "PASS" if (r or 1) < 1e-6 else "FAIL", f"최대 절대차 {r:.2e}")
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()

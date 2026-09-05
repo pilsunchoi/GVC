@@ -30,6 +30,7 @@ OECD 국가간 산업연관표(ICIO) 2025판을 원표 그대로 담고, 표준 
 | | `map_ksic_vintage` | 2,462 | KSIC 11차 ↔ 10차 (통계청 공식) |
 | **mart** | `mart_gvc_core` | 113,400 | DVA/FVA 비중, 후방·전방참여도, 상류도·하류도 |
 | | `mart_gvc_bilateral` | 8,797,680 | 상대국별 수출과 상대국 부가가치 함량 |
+| | `mart_gvc_import_va` | 367,416 | 수입에 체화된 상대국 부가가치와 같은 모집단의 총액 |
 | | `mart_gvc_loo` | 108,448 | 자국 제외 타국 평균 (도구변수용) |
 | | `mart_tiva_check` | 553,280 | 자체 산출치 ↔ OECD TiVA 공표치 대조 |
 | **meta** | `meta_edition`, `meta_source` | — | 판 정보, 내려받은 원본의 URL·크기·sha256 |
@@ -96,6 +97,7 @@ python scripts/04_build_dims.py        # dim_* + meta_edition
 python scripts/04b_fetch_ksic.py       # KSIC 전 단계 코드·명칭 (통계분류포털)
 python scripts/05_build_maps.py        # map_isic_icio, map_ksic_isic, map_ksic_icio
 python scripts/06_compute_gvc.py       # mart_gvc_core, mart_gvc_bilateral (약 13분)
+python scripts/06b_compute_import_va.py # mart_gvc_import_va (약 25분)
 python scripts/07_compute_loo.py       # mart_gvc_loo
 python scripts/08_validate_tiva.py     # mart_tiva_check (OECD TiVA 대조)
 python scripts/09_validate.py          # 통합 검증 (PASS/WARN/FAIL)
@@ -112,6 +114,7 @@ python scripts/03_parquet_to_duckdb.py --edition ICIO2025_EXT
 python scripts/04_build_dims.py --variant EXT
 python scripts/05_build_maps.py --edition ICIO2025_EXT
 python scripts/06_compute_gvc.py --edition ICIO2025_EXT
+python scripts/06b_compute_import_va.py --edition ICIO2025_EXT
 python scripts/07_compute_loo.py --edition ICIO2025_EXT
 python scripts/08_validate_tiva.py --edition ICIO2025_EXT
 python scripts/09_validate.py --edition ICIO2025_EXT
