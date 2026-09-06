@@ -13,6 +13,7 @@ data/external/
 
 # 캐시
 __pycache__/
+.ipynb_checkpoints/
 *.pyc
 .venv/
 
@@ -22,7 +23,8 @@ __pycache__/
 # 세션 안내서. 작업 규약과 미공개 연구 맥락이 들어 있어 로컬 전용이다.
 CLAUDE.md
 
-# 연구용 분석 (로컬 전용, 저장소 제외)
+# 연구용 작업 공간 (로컬 전용, 저장소 제외).
+# 공개하는 연구는 research/ 에 둔다.
 analysis/
 
 # 릴리스 본문 초안 (11_db_status.py 가 DB 를 읽어 만든다. 손으로 고치지 않는다)
