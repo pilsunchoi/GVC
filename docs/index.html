@@ -222,7 +222,7 @@
 
 <!-- DB_STATUS:START -->
     <div class="stats">
-      <div class="stat"><div class="n">515,411,961</div><div class="k">원표 중간재 거래 행 (두 판 합)</div></div>
+      <div class="stat"><div class="n">515,411,961</div><div class="k">원표 중간재 거래 행 (두 버전 합)</div></div>
       <div class="stat"><div class="n">1995–2022</div><div class="k">연도 (28개, 빠짐 없음)</div></div>
       <div class="stat"><div class="n">81</div><div class="k">개체 (80개국 + ROW)</div></div>
       <div class="stat"><div class="n">50</div><div class="k">ICIO 산업 (ISIC Rev.4)</div></div>
@@ -237,8 +237,8 @@
       <li><b>fact 테이블은 OECD가 배포한 값만 담는다.</b> 파생 컬럼을 만들지 않는다.</li>
       <li><b>관측값을 변형하지 않는다.</b> 균형화·반올림·보정을 하지 않는다. 원표가 어긋나 있으면 어긋난 채로 담고 그 사실을 검증에서 보고한다.</li>
       <li><b>분류 연계와 참조 정보는 dim·map 계층에 둔다.</b> fact는 건드리지 않는다.</li>
-      <li><b>계산된 지표는 mart 계층에 둔다.</b> 모든 mart 행이 <code>edition</code>과 <code>method_version</code>을 갖는다. 산식을 고치면 판을 올린다.</li>
-      <li><b>판(edition)이 다르면 다른 자료다.</b> 판 간 결합을 하지 않는다.</li>
+      <li><b>계산된 지표는 mart 계층에 둔다.</b> 모든 mart 행이 <code>edition</code>과 <code>method_version</code>을 갖는다. 산식을 고치면 그 판본 번호를 올린다.</li>
+      <li><b>ICIO 버전(<code>edition</code>)이 다르면 다른 자료다.</b> 버전 간 결합을 하지 않는다.</li>
     </ol>
 
     <h3>믿을 수 있는가</h3>
@@ -258,7 +258,7 @@
     </div>
     <p class="sub">확장판은 다섯 측정치 전부에서 어긋나는 칸이 0개다(최대 상대오차 0.008%). 표준판에서 중국·멕시코가 어긋나는 것은 산식의 결함이 아니라 OECD가 다른 표를 쓰기 때문이다 — 총수출·총산출·부가가치는 표준판에서도 정확히 맞는다.</p>
 
-    <p>원표 자체의 무결성 검증(<code>scripts/09_validate.py</code>)은 두 판 모두 같은 결과다.</p>
+    <p>원표 자체의 무결성 검증(<code>scripts/09_validate.py</code>)은 두 버전 모두 같은 결과다.</p>
     <div class="verdict">
       <span class="pill ok">PASS 24</span>
       <span class="pill warn">WARN 3</span>
@@ -300,21 +300,21 @@
         </tbody>
       </table>
     </div>
-    <div class="note"><b>산업 목록은 PDF에서 옮기지 않았다.</b> OECD가 함께 배포하는 <code>ReadMe</code> 워크북의 <code>Area_Activities</code> 시트에 국가·산업 코드와 대응 ISIC Rev.4가 기계가 읽을 수 있는 형태로 들어 있다. annex PDF의 표를 손으로 옮기면 오타가 섞이고 판이 바뀔 때마다 다시 해야 한다.</div>
+    <div class="note"><b>산업 목록은 PDF에서 옮기지 않았다.</b> OECD가 함께 배포하는 <code>ReadMe</code> 워크북의 <code>Area_Activities</code> 시트에 국가·산업 코드와 대응 ISIC Rev.4가 기계가 읽을 수 있는 형태로 들어 있다. annex PDF의 표를 손으로 옮기면 오타가 섞이고 버전이 바뀔 때마다 다시 해야 한다.</div>
 
     <h3>파이프라인</h3>
     <p>스크립트 열한 개가 순서대로 돈다. 어느 단계든 처음부터 다시 돌리면 같은 결과가 나온다.</p>
     <ol class="steps">
       <li><h4><code>01_fetch_icio.py</code> — 원본 내려받기</h4><p>연도묶음 zip과 문서를 받아 <code>data/raw/</code>에 그대로 둔다. 받은 뒤 수정하지 않는다. sha256을 <code>_manifest.json</code>에 적는다.</p></li>
       <li><h4><code>02_icio_to_parquet.py</code> — CSV → 연도별 parquet</h4><p>4,053×4,538 행렬을 long 형태로 편다. 값이 정확히 0인 칸은 담지 않는다(Z의 38%). 행에 있던 <code>TLS</code>·<code>VA</code>·<code>OUT</code>은 국가×산업 축으로 돌려 담는다 — 재배치이지 파생이 아니다.</p></li>
-      <li><h4><code>03_parquet_to_duckdb.py</code> — fact 적재</h4><p><code>fact_icio_z</code>·<code>fact_icio_fd</code>·<code>fact_icio_va</code>. <code>edition</code>을 키에 넣고, 다시 돌리면 그 판의 행만 갈아 끼운다.</p></li>
+      <li><h4><code>03_parquet_to_duckdb.py</code> — fact 적재</h4><p><code>fact_icio_z</code>·<code>fact_icio_fd</code>·<code>fact_icio_va</code>. <code>edition</code>을 키에 넣고, 다시 돌리면 그 버전의 행만 갈아 끼운다.</p></li>
       <li><h4><code>04_build_dims.py</code>·<code>04b_fetch_ksic.py</code> — 참조 표</h4><p>국가·산업·최종수요유형·ISIC·KSIC 사전. KSIC은 포털 분류검색 204쪽을 긁어 전 단계(중·소·세·세세분류)를 모은다.</p></li>
       <li><h4><code>05_build_maps.py</code> — 연계표</h4><p>핵심 산출물인 <code>map_ksic_icio</code>를 만든다. 자세한 것은 <a href="#" onclick="showTab('link');return false">분류 연계</a> 탭.</p></li>
       <li><h4><code>06_compute_gvc.py</code> — GVC 지표</h4><p>연도마다 4,050×4,050 레온티에프 역행렬을 구해 지표를 낸다. 병목은 행렬 연산이 아니라 DuckDB에서 Z를 읽는 부분이다.</p></li>
       <li><h4><code>07_compute_loo.py</code> — leave-one-out</h4><p>같은 산업·연도의 자국을 뺀 타국 지표. 도구변수용이다.</p></li>
       <li><h4><code>08_validate_tiva.py</code> — OECD 공표치 대조</h4><p>SDMX에서 TiVA 다섯 측정치를 받아 <code>mart_tiva_check</code>를 만든다.</p></li>
       <li><h4><code>09_validate.py</code> — 통합 검증</h4><p>스물일곱 항목을 PASS/WARN/FAIL로 판정한다. FAIL이 하나라도 있으면 종료코드 1이다. 검증을 여러 파일로 분열시키지 않는다.</p></li>
-      <li><h4><code>10_export_lite.py</code> — 교육용 축소판</h4><p>원표 둘을 뺀 판을 따로 낸다.</p></li>
+      <li><h4><code>10_export_lite.py</code> — 교육용 축소판</h4><p>원표 둘을 뺀 것을 따로 낸다.</p></li>
     </ol>
 
     <h3>계층 설계</h3>
@@ -327,12 +327,12 @@
           <tr><td><code>dim_</code></td><td>코드·명칭·계층</td><td>국가(개체), 산업, 최종수요 유형, ISIC Rev.4, KSIC</td></tr>
           <tr><td><code>map_</code></td><td>분류 연계</td><td>ISIC→ICIO, KSIC→ISIC, KSIC→ICIO, KSIC 차수 간</td></tr>
           <tr><td><code>mart_</code></td><td>계산된 지표</td><td>GVC 핵심 지표, 양자 지표, leave-one-out, TiVA 대조. <code>edition</code>+<code>method_version</code>이 키에 있다</td></tr>
-          <tr><td><code>meta_</code></td><td>이력</td><td>판 정보, 내려받은 원본의 URL·바이트·sha256</td></tr>
+          <tr><td><code>meta_</code></td><td>이력</td><td>버전 정보, 내려받은 원본의 URL·바이트·sha256</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>판이 둘이다</h3>
+    <h3>ICIO 버전이 둘이다</h3>
     <p>OECD는 같은 해의 표를 두 벌 낸다. 표준판(SML)은 나라마다 하나씩이고, 확장판(EXT)은 중국과 멕시코를 가공무역 부문과 그 밖으로 쪼갠 표다. 가공무역은 수입한 부품을 조립해 되수출하는 것이라 국내 부가가치율이 훨씬 낮다. 이 DB는 둘 다 담되 <code>edition</code>으로 갈라 둔다.</p>
     <div class="tblwrap">
       <table>
@@ -346,7 +346,7 @@
       </table>
     </div>
     <div class="note warn"><b>확장판은 생산 쪽만 쪼갠다.</b> <code>CHN</code>·<code>MEX</code> 행은 값이 전부 0이지만 최종수요 열은 여전히 <code>CHN</code>·<code>MEX</code>다. 그래서 <code>CN1 → CHN</code> 최종수요는 국내 거래이지 수출이 아니다. 개체 이름만 보고 <code>src_cty &lt;&gt; dst_cty</code>로 수출을 세면 2022년 세계 수출이 27.1조에서 45.2조로 부풀어 오른다. 이 DB는 <code>dim_icio_entity.economy</code>(경제권)를 두어 <code>CN1</code>·<code>CN2</code> → <code>CHN</code>으로 묶고, 「자국」과 「수출」의 경계를 그것으로 잡는다.</div>
-    <p>경제권 기준으로 세면 두 판의 세계 총수출이 소수점까지 맞는다 — 2022년 27,110,736.5 대 27,110,736.9(백만 달러). 판이 달라도 국경을 넘는 거래는 같고, 달라지는 것은 그 거래의 부가가치 원천 배분뿐이다.</p>
+    <p>경제권 기준으로 세면 두 버전의 세계 총수출이 소수점까지 맞는다 — 2022년 27,110,736.5 대 27,110,736.9(백만 달러). 버전이 달라도 국경을 넘는 거래는 같고, 달라지는 것은 그 거래의 부가가치 원천 배분뿐이다.</p>
 
     <h3>실측으로 확정한 것</h3>
     <p>구축 과정에서 문서만으로는 알 수 없어 자료를 직접 재어 결론 낸 것들이다. 한 번 결론 난 것은 다시 논하지 않는다.</p>
@@ -450,9 +450,9 @@ JOIN mart_gvc_core c
     <h3>먼저 알아야 할 셋</h3>
     <div class="traps">
       <div class="trap hot">
-        <div class="tref">판</div>
-        <h4>판을 섞지 말 것</h4>
-        <p>표준판과 확장판은 다른 자료다. 한 회귀에 섞으면 안 되고, 논문에는 쓴 <code>edition</code>과 <code>method_version</code>을 함께 적는다. 판이 갱신되면 OECD가 전 기간을 재추정하므로 판 간 비교·연결도 금지다.</p>
+        <div class="tref">버전</div>
+        <h4>ICIO 버전을 섞지 말 것</h4>
+        <p>표준판과 확장판은 다른 자료다. 한 회귀에 섞으면 안 되고, 논문에는 쓴 <code>edition</code>과 <code>method_version</code>을 함께 적는다. 버전이 갱신되면 OECD가 전 기간을 재추정하므로 버전 간 비교·연결도 금지다.</p>
       </div>
       <div class="trap hot">
         <div class="tref">확장판</div>
@@ -528,8 +528,8 @@ JOIN mart_gvc_core c
       </div>
       <div class="trap">
         <div class="tref">필터</div>
-        <h4><code>edition</code>을 안 걸면 두 판이 섞인다</h4>
-        <p>한 표에 두 판이 함께 들어 있다. <code>WHERE edition='ICIO2025'</code>를 빠뜨리면 행수가 두 배가 되고 합계가 두 배로 나온다. <code>method_version</code>도 같이 거는 습관을 들이는 편이 낫다.</p>
+        <h4><code>edition</code>을 안 걸면 두 버전이 섞인다</h4>
+        <p>한 표에 두 버전이 함께 들어 있다. <code>WHERE edition='ICIO2025'</code>를 빠뜨리면 행수가 두 배가 되고 합계가 두 배로 나온다. <code>method_version</code>도 같이 거는 습관을 들이는 편이 낫다.</p>
       </div>
       <div class="trap">
         <div class="tref">DuckDB</div>
@@ -630,14 +630,14 @@ ORDER BY year</code></pre>
 
     <div class="note warn">
       <b>단위 표기.</b> 금액은 모두 경상 백만 미국달러다. 실질화돼 있지 않으므로 금액 수준의 연도 간 비교는 디플레이터가 필요하다.<br>
-      <b>판 경계.</b> 한 표에 두 판이 함께 들어 있다. <code>WHERE edition='ICIO2025'</code>를 빠뜨리면 행수가 두 배가 되고 합계도 두 배로 나온다. <code>method_version</code>도 함께 거는 습관을 들이는 편이 낫다. 두 판의 차이는 <a href="#" onclick="showTab('build');return false">DB 구축</a> 탭에 있다.<br>
+      <b>버전 경계.</b> 한 표에 두 버전이 함께 들어 있다. <code>WHERE edition='ICIO2025'</code>를 빠뜨리면 행수가 두 배가 되고 합계도 두 배로 나온다. <code>method_version</code>도 함께 거는 습관을 들이는 편이 낫다. 두 버전의 차이는 <a href="#" onclick="showTab('build');return false">DB 구축</a> 탭에 있다.<br>
       <b>범위 경계.</b> 1995–2022년이다. OECD nowcast는 커버리지와 부문 수가 달라 넣지 않았다. 연도별 표가 기준연도 공급사용표 사이를 보간한 추정치라는 점도 함께 읽어야 한다.<br>
       <b>집계 주의.</b> 나라나 산업을 묶어 볼 때는 비중을 평균하지 말고 금액을 합쳐 다시 나눈다 — <code>sum(dva_share*exgr)/sum(exgr)</code>가 맞다. 이런 함정은 <a href="#" onclick="showTab('traps');return false">데이터 함정</a> 탭에 모아 두었다.<br>
       <b>추정 표시.</b> <code>map_ksic_isic</code>와 <code>map_ksic_icio</code>는 공표된 연계표가 아니라 이 DB가 만든 대응이다. 통계청·OECD의 공식 판단이 아니며, 규칙과 그 근거는 <code>scripts/05_build_maps.py</code>에 적혀 있다. 만든 방법은 <a href="#" onclick="showTab('link');return false">분류 연계</a> 탭에 있다.
     </div>
 
     <h3>표 전체 목록</h3>
-    <p>DB에 들어 있는 표를 계층 순서로 모두 적는다. 행수는 두 판을 합친 것이다.</p>
+    <p>DB에 들어 있는 표를 계층 순서로 모두 적는다. 행수는 두 버전을 합친 것이다.</p>
 <!-- DB_INVENTORY:START -->
     <div class="tblwrap">
       <table class="inv">
@@ -649,7 +649,7 @@ ORDER BY year</code></pre>
           <tr><td><code>fact_icio_va</code></td><td>생산물세－보조금(TLS), 부가가치(VA), 총산출(OUT)</td><td class="r">232,400</td><td class="r s">1995–2022</td><td class="s">백만 USD 경상</td></tr>
           <tr class="grp"><td colspan="5">참조 (dim)</td></tr>
           <tr><td><code>dim_icio_entity</code></td><td>ICIO 개체와 그 경제권(economy)</td><td class="r">166</td><td class="r s"></td><td class="s">확장판에서 CN1·CN2 → CHN</td></tr>
-          <tr><td><code>dim_icio_ind</code></td><td>ICIO 50산업과 대응 ISIC Rev.4</td><td class="r">100</td><td class="r s"></td><td class="s">판별로 따로 있다</td></tr>
+          <tr><td><code>dim_icio_ind</code></td><td>ICIO 50산업과 대응 ISIC Rev.4</td><td class="r">100</td><td class="r s"></td><td class="s">버전별로 따로 있다</td></tr>
           <tr><td><code>dim_icio_fd</code></td><td>최종수요 6유형</td><td class="r">6</td><td class="r s"></td><td class="s">HFCE·NPISH·GGFC·GFCF·INVNT·DPABR</td></tr>
           <tr><td><code>dim_isic4</code></td><td>ISIC Rev.4 전 계층</td><td class="r">766</td><td class="r s"></td><td class="s">UNSD 공식 구조 파일</td></tr>
           <tr><td><code>dim_ksic</code></td><td>KSIC 11차·10차 세세분류</td><td class="r">2,401</td><td class="r s"></td><td class="s">11차 1,205개 · 10차 1,196개</td></tr>
@@ -665,7 +665,7 @@ ORDER BY year</code></pre>
           <tr><td><code>mart_gvc_loo</code></td><td>같은 산업·연도의 자국 제외 타국 평균</td><td class="r">217,960</td><td class="r s">1995–2022</td><td class="s">도구변수용. 빼는 단위는 경제권</td></tr>
           <tr><td><code>mart_tiva_check</code></td><td>자체 산출치 ↔ OECD TiVA 공표치 대조</td><td class="r">1,106,560</td><td class="r s">1995–2022</td><td class="s">받은 사람이 직접 다시 볼 수 있다</td></tr>
           <tr class="grp"><td colspan="5">이력 (meta)</td></tr>
-          <tr><td><code>meta_edition</code></td><td>판 메타데이터</td><td class="r">2</td><td class="r s"></td><td class="s">개체·산업 수, 커버리지, 단위</td></tr>
+          <tr><td><code>meta_edition</code></td><td>버전 메타데이터</td><td class="r">2</td><td class="r s"></td><td class="s">개체·산업 수, 커버리지, 단위</td></tr>
           <tr><td><code>meta_source</code></td><td>내려받은 원본의 URL·바이트·sha256</td><td class="r">20</td><td class="r s"></td><td class="s">무엇을 써서 만들었는지의 근거</td></tr>
         </tbody>
       </table>
@@ -700,7 +700,7 @@ python scripts/07_compute_loo.py
 python scripts/08_validate_tiva.py
 python scripts/09_validate.py
 python scripts/10_export_lite.py</code></pre>
-    <p>확장판은 같은 파이프라인에 판을 지정해 넣는다. <code>02</code>·<code>04</code>는 <code>--variant EXT</code>, 나머지는 <code>--edition ICIO2025_EXT</code>다. 각 스크립트는 그 판의 행만 갈아 끼우므로 한쪽을 다시 돌려도 다른 쪽이 지워지지 않는다.</p>
+    <p>확장판은 같은 파이프라인에 버전을 지정해 넣는다. <code>02</code>·<code>04</code>는 <code>--variant EXT</code>, 나머지는 <code>--edition ICIO2025_EXT</code>다. 각 스크립트는 그 버전의 행만 갈아 끼우므로 한쪽을 다시 돌려도 다른 쪽이 지워지지 않는다.</p>
   </section>
 
   <!-- ============ 연구 ============ -->

@@ -56,7 +56,7 @@ INVENTORY: list[tuple[str, list[tuple[str, str, str]]]] = [
     ]),
     ("참조 (dim)", [
         ("dim_icio_entity", "ICIO 개체와 그 경제권(economy)", "확장판에서 CN1·CN2 → CHN"),
-        ("dim_icio_ind", "ICIO 50산업과 대응 ISIC Rev.4", "판별로 따로 있다"),
+        ("dim_icio_ind", "ICIO 50산업과 대응 ISIC Rev.4", "버전별로 따로 있다"),
         ("dim_icio_fd", "최종수요 6유형", "HFCE·NPISH·GGFC·GFCF·INVNT·DPABR"),
         ("dim_isic4", "ISIC Rev.4 전 계층", "UNSD 공식 구조 파일"),
         ("dim_ksic", "KSIC 11차·10차 세세분류", "11차 1,205개 · 10차 1,196개"),
@@ -75,7 +75,7 @@ INVENTORY: list[tuple[str, list[tuple[str, str, str]]]] = [
         ("mart_tiva_check", "자체 산출치 ↔ OECD TiVA 공표치 대조", "받은 사람이 직접 다시 볼 수 있다"),
     ]),
     ("이력 (meta)", [
-        ("meta_edition", "판 메타데이터", "개체·산업 수, 커버리지, 단위"),
+        ("meta_edition", "버전 메타데이터", "개체·산업 수, 커버리지, 단위"),
         ("meta_source", "내려받은 원본의 URL·바이트·sha256", "무엇을 써서 만들었는지의 근거"),
     ]),
 ]
@@ -103,7 +103,7 @@ def gather(con) -> dict:
 
 def status_html(s: dict) -> str:
     cards = [
-        (fmt(s["n_z"]), "원표 중간재 거래 행 (두 판 합)"),
+        (fmt(s["n_z"]), "원표 중간재 거래 행 (두 버전 합)"),
         (f"{s['y0']}–{s['y1']}", f"연도 ({s['ny']}개, 빠짐 없음)"),
         (f"{s['n_ent']}", "개체 (80개국 + ROW)"),
         (f"{s['n_ind']}", "ICIO 산업 (ISIC Rev.4)"),
@@ -184,7 +184,7 @@ def release_body(con) -> tuple[str, str]:
 
     L: list[str] = []
     L.append(f"OECD ICIO 2025판 기반 GVC 지표 데이터베이스. {y0}–{y1}년, 80개국+ROW, 50산업(ISIC Rev.4). "
-             f"표준판과 확장판 두 판이 한 파일에 들어 있고, KSIC↔ICIO 연계표가 함께 담겨 있다.")
+             f"표준판과 확장판 두 버전이 한 파일에 들어 있고, KSIC↔ICIO 연계표가 함께 담겨 있다.")
     L.append("")
     L.append("## 무엇을 받나")
     L.append("")
@@ -201,7 +201,7 @@ def release_body(con) -> tuple[str, str]:
              "Mac·Linux 는 `gunzip gvc.duckdb.gz` 로 푼다.")
     L.append(f"쓰는 법과 DB 소개는 {PAGES} 참조.")
     L.append("")
-    L.append("## 판이 둘이다")
+    L.append("## ICIO 버전이 둘이다")
     L.append("")
     L.append("| `edition` | 개체 | 산업 | 무엇이 다른가 |")
     L.append("|---|---:|---:|---|")
@@ -210,15 +210,15 @@ def release_body(con) -> tuple[str, str]:
                 else "중국·멕시코를 가공무역 부문과 그 밖으로 쪼갠 표. **OECD 공표 TiVA 를 그대로 재현한다**")
         L.append(f"| `{ed}` | {ne} | {ni} | {note} |")
     L.append("")
-    L.append("**질의할 때 `edition` 을 반드시 건다.** 빠뜨리면 두 판이 섞여 합계가 두 배로 나온다. "
-             "판 간 결합은 하지 않는다 — 논문에는 쓴 판과 `method_version` 을 함께 적는다.")
+    L.append("**질의할 때 `edition` 을 반드시 건다.** 빠뜨리면 두 버전이 섞여 합계가 두 배로 나온다. "
+             "버전 간 결합은 하지 않는다 — 논문에는 쓴 버전과 `method_version` 을 함께 적는다.")
     L.append("")
     L.append("확장판은 **생산 쪽만** 쪼갠다. `CHN`·`MEX` 행은 비어 있지만 최종수요 열은 그대로다. "
              "그래서 「자국」의 경계는 개체가 아니라 `dim_icio_entity.economy`(경제권)다.")
     L.append("")
     L.append("## 들어 있는 것")
     L.append("")
-    L.append("행수는 두 판을 합친 것이다.")
+    L.append("행수는 두 버전을 합친 것이다.")
     for group, rows in INVENTORY:
         L.append("")
         L.append(f"**{group}**")
@@ -238,7 +238,7 @@ def release_body(con) -> tuple[str, str]:
     L.append("- 규모 있는 칸(공표치 10억 달러 초과)에서 **확장판은 다섯 측정치 전부 어긋난 칸이 0개**다(최대 상대오차 0.008%).")
     L.append("- 표준판도 총산출·총수출·부가가치는 정확히 맞는다. 다만 중국·멕시코의 DVA/FVA 가 어긋난다 — "
              "OECD 가 확장판에서 계산하기 때문이다.")
-    L.append("- 원표 무결성 검증(`scripts/09_validate.py`)은 두 판 모두 **PASS 24 · WARN 3 · FAIL 0**.")
+    L.append("- 원표 무결성 검증(`scripts/09_validate.py`)은 두 버전 모두 **PASS 24 · WARN 3 · FAIL 0**.")
     L.append("")
     L.append("## 알아 둘 것")
     L.append("")
