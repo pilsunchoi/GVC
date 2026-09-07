@@ -545,7 +545,7 @@ JOIN mart_gvc_core c
     <p class="sub lead">DB를 받아 로컬 주피터에서 분석하려는 연구자에게 필요한 것을 안내한다.</p>
 
     <p><b>먼저 알아둘 것 — 받을 것이 둘로 나뉜다.</b> 이 DB는 두 부분으로 배포된다. 하나는 스크립트·문서·폴더 구조가 담긴 GitHub 저장소이고, 다른 하나는 DB 파일 자체다. DB 파일은 용량이 커서 GitHub 저장소에 넣을 수 없기 때문에(100MB 한도), 저장소는 clone으로 받고 DB 파일은 Releases에서 따로 받아 저장소 안 정해진 자리에 놓는 방식이다.</p>
-    <p>전체 흐름은 네 단계다 — 패키지 설치 → 저장소 받기 → DB 파일 받아 배치 → 주피터에서 열기. DB를 재구축하는 것이 아니라 이미 만들어진 DB를 받아 분석만 하므로 준비물은 가볍다(파이썬 패키지 4개). 순서대로 따라 하면 된다.</p>
+    <p>전체 흐름은 네 단계다 — 패키지 설치 → 저장소 받기 → DB 파일 받아 배치 → 주피터에서 열기. DB를 재구축하는 것이 아니라 이미 만들어진 DB를 받아 분석만 하므로 준비물은 가볍다 — 파이썬 패키지 넷이고, 「연구」 탭의 노트북까지 돌리려면 하나를 더한다. 순서대로 따라 하면 된다.</p>
     <p><span class="ver"><!-- DB_VERSION:START -->내려받기 v1.0-icio2025 · 2026-09-05 게시<!-- DB_VERSION:END --></span></p>
 
     <ol class="steps">
@@ -560,6 +560,7 @@ JOIN mart_gvc_core c
         <p>GitHub에서 이 저장소를 clone(또는 ZIP 다운로드 후 압축 해제)하면 <code>GVC/</code> 폴더가 생긴다. 분석에 필요한 것이 모두 이 안에 들어 있다.</p>
         <pre><code>git clone https://github.com/pilsunchoi/GVC.git</code></pre>
         <ul>
+          <li><code>research/</code> — 「연구」 탭에 실린 분석. 논문과 재현 노트북, 그림이 연구별 폴더에 들어 있다</li>
           <li><code>scripts/</code> — 원본 내려받기부터 검증까지 파이프라인 열한 개</li>
           <li><code>docs/</code> — 설계 헌법(<code>DB_구축_원칙.md</code>)과 지표 산식(<code>method.md</code>)</li>
           <li><code>rdc/join_spec.sql</code> — 통계청 RDC 반입용 결합 스펙</li>
@@ -580,6 +581,7 @@ JOIN mart_gvc_core c
           </table>
         </div>
         <ul>
+          <li>내려받는 압축 파일은 각각 약 1.4GB와 0.36GB다. 푼 뒤의 크기가 위 표의 값이다.</li>
           <li>Windows: 7-Zip 등으로 <code>.gz</code> 압축 해제</li>
           <li>Mac / Linux: 터미널에서 <code>gunzip gvc.duckdb.gz</code></li>
         </ul>
@@ -587,10 +589,20 @@ JOIN mart_gvc_core c
       </li>
       <li>
         <h4>주피터에서 열기</h4>
-        <p>준비가 끝났다. 저장소 루트(<code>GVC/</code>)에서 아래를 실행하면 브라우저에 주피터가 열린다. 새 노트북을 만들어 다음 절의 접속 코드를 붙여 넣으면 바로 질의할 수 있다.</p>
-        <pre><code>jupyter notebook</code></pre>
+        <p>준비가 끝났다. 저장소 루트(<code>GVC/</code>)에서 아래를 실행하면 브라우저에 주피터가 열린다.</p>
+        <pre><code>jupyter lab</code></pre>
+        <p>직접 질의해 보려면 새 노트북을 만들어 다음 절의 접속 코드를 붙여 넣는다. <a href="#" onclick="showTab('research');return false">연구</a> 탭의 분석을 그대로 재현하려면 왼쪽 파일 목록에서 아래 노트북을 열고 「Run All」을 누른다.</p>
+        <pre><code>research/1.일본수출규제와_공급망재편/2019_japan_gvc.ipynb</code></pre>
+        <p>커널을 고르라는 창이 뜨면 Python 3을 고른다. 전체 실행에 1분 안팎이 걸리고, 마지막 절이 논문에 인용된 수치 146개를 계산값과 대조해 「검증 통과」를 찍는다. 어긋나는 값이 하나라도 있으면 거기서 멈추므로, 끝까지 돌았다면 논문의 수치가 그 자리에서 다시 만들어진 것이다.</p>
       </li>
     </ol>
+
+    <div class="note"><b>막히면 여기부터.</b><br>
+      <b>ModuleNotFoundError: statsmodels</b> — 1단계의 추가 설치를 빠뜨린 것이다.<br>
+      <b>gvc.duckdb 를 찾지 못했다</b> — 압축을 푼 뒤 파일 이름이 정확히 <code>gvc.duckdb</code> 또는 <code>gvc_lite.duckdb</code>여야 하고, 자리는 <code>GVC/data/processed/</code>다. 이름 뒤에 <code>(1)</code> 같은 것이 붙지 않았는지 본다.<br>
+      <b>Could not set lock on file</b> — 다른 커널이나 스크립트가 같은 DB를 잡고 있다. 그것을 먼저 끝낸다.<br>
+      <b>축소판을 받았는데 한 셀이 건너뛰어진다</b> — 정상이다. 원표를 읽는 대목 하나뿐이고 나머지 수치는 전체판과 똑같이 나온다.<br>
+      <b>그림 라벨이 영문으로 나온다</b> — 한글 글꼴이 없는 환경이라 노트북이 스스로 바꾼 것이다. 표는 한글 그대로다.</div>
 
     <h3>기본 접속 코드</h3>
     <p>DuckDB는 파일 하나에 접속하는 방식이라 서버가 필요 없다. 아래처럼 <code>read_only=True</code>로 열면 실수로 원본을 바꿀 염려 없이 안전하게 조회만 할 수 있다. 여러 사람이 같은 파일을 동시에 읽을 때도 이 옵션이 안전하다. 작업이 끝나면 <code>con.close()</code>로 닫는다.</p>
