@@ -8,8 +8,9 @@
 이 대조로 판정한 두 가지 (2026-09-04 실측):
  1. **TiVA 의 VALU = ICIO 의 VA + TLS 다.** 상대오차 중위 0.0000%.
     docs/method.md §1 에서 v = (VA+TLS)/X 로 둔 선택이 옳다는 뜻이다.
- 2. **중국·멕시코만 EXGR_DVA/EXGR_FVA 가 어긋난다.** OECD 는 공표 TiVA 를
-    확장판(EXT, CN1/CN2·MX1/MX2)에서 계산한 뒤 CHN·MEX 로 합친다. 가공무역 부문의
+ 2. **중국·멕시코만 EXGR_DVA/EXGR_FVA 가 어긋난다.** 확장판(EXT, CN1/CN2·MX1/MX2)에서 계산해
+    CHN·MEX 로 합치면 맞으므로, 공표 TiVA 는 확장판 기준으로 계산된 것으로 판단한다.
+    대조로 얻은 추론이며 OECD 문서에서 명시한 문장은 확인하지 못했다(2026-09-11). 가공무역 부문의
     국내부가가치율이 낮으므로 표준판(SML)으로 계산하면 DVA 가 높게 나온다.
     나머지 78개국 + ROW 는 반올림 수준으로 일치한다.
 
@@ -151,7 +152,7 @@ def main() -> int:
                CASE WHEN abs(t.tiva_value) > 1 THEN (l.v - t.tiva_value)/t.tiva_value END AS rel_diff,
                -- 상대오차는 작은 칸에서 과장된다. 규모가 있는 칸만 판정에 쓴다.
                t.tiva_value > {MATERIAL} AS material,
-               -- OECD 는 TiVA 를 확장판에서 계산한다. 이 둘만 갈라 본다.
+               -- 공표 TiVA 는 확장판 기준으로 판단된다(대조로 얻은 추론). 이 둘만 갈라 본다.
                t.cty IN ('CHN','MEX') AS split_country
         FROM _t t JOIN long l
           ON l.year=t.year AND l.cty=t.cty AND l.ind=t.ind AND l.m=t.measure
@@ -191,7 +192,7 @@ def main() -> int:
     log.info("  · VALU 는 va+tls 로 비교한다. TiVA 의 VALU 는 ICIO 의 VA 에 TLS 를 더한 것이다.")
     log.info("    method.md §1 의 v = (VA+TLS)/X 선택이 이것으로 확인된다.")
     log.info("  · EXGR_DVA·EXGR_FVA 는 중국·멕시코에서만 어긋난다(DVA 약 +3%, FVA 약 −7%).")
-    log.info("    OECD 는 공표 TiVA 를 확장판(EXT)에서 계산해 CHN·MEX 로 합치기 때문이다.")
+    log.info("    확장판(EXT)에서 계산해 CHN·MEX 로 합치면 맞으므로 공표 TiVA 는 확장판 기준으로 판단한다(추론).")
     log.info("    그 두 나라를 OECD 공표치와 맞추려면 EXT 판을 별도 edition 으로 적재한다:")
     log.info("      python scripts\\01_fetch_icio.py --variant EXT")
     log.info("      python scripts\\02_icio_to_parquet.py --variant EXT")
