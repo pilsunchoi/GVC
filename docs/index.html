@@ -25,10 +25,12 @@
   code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em}
 
   /* header */
-  header.top{background:linear-gradient(180deg,#fff, #fbfcfe); border-bottom:1px solid var(--line)}
+  /* 헤더 색은 DB마다 다르다 — 세 대시보드를 첫 화면에서 가르는 표시.
+     KCSDB2(무역통계) 연한 파랑 #e6effd, GVC 연한 초록 #e4f4ea, KCSTARIFF(관세율) 연한 살구색 #fdeedd. */
+  header.top{background:#e4f4ea; border-bottom:1px solid #bfe3cc}
   .brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;padding:22px 0 6px}
   .brand h1{font-size:1.95rem;font-weight:700;margin:0;letter-spacing:-.01em}
-  .brand .tag{color:var(--muted);font-size:1.17rem;font-weight:700}
+  .brand .tag{color:var(--ok);font-size:1.17rem;font-weight:700}
   .lede{color:var(--muted);margin:0 0 16px;font-size:.98rem}
 
   /* tabs */
@@ -37,8 +39,8 @@
   .tabrow{display:flex;gap:4px;overflow-x:auto;padding:8px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .tabrow::-webkit-scrollbar{display:none}
   .tabrow button{
-    flex:0 0 auto; border:1px solid transparent; background:transparent; color:var(--muted);
-    font:inherit; font-weight:600; font-size:.92rem; padding:11px 14px; border-radius:999px; cursor:pointer; white-space:nowrap;
+    flex:0 0 auto; border:1px solid transparent; background:transparent; color:var(--ink);
+    font:inherit; font-weight:700; font-size:.98rem; padding:11px 14px; border-radius:999px; cursor:pointer; white-space:nowrap;
   }
   .tabrow button:hover{color:var(--ink);background:var(--brand-soft)}
   .tabrow button[aria-selected="true"]{color:var(--brand);background:var(--brand-soft);border-color:#d4e2fb}
