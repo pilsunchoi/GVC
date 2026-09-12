@@ -216,7 +216,7 @@
     <div class="panel">
       <p><b>무엇인가.</b> OECD 국가간 산업연관표를 변형 없이 적재하고, 거기서 계산한 GVC 지표와 분류 연계표를 함께 담은 DuckDB 단일 파일 DB다. 원표는 셋으로 나뉘어 들어간다 — 중간재 거래(국가·산업 → 국가·산업), 최종수요(6유형), 그리고 생산물세·부가가치·총산출이다. 지표는 수출에 실린 자국/외국 부가가치 비중, 후방·전방 참여도, 상류도와 하류도, 상대국별 부가가치 함량이다. 연계표는 한국표준산업분류(KSIC) 10차·11차를 ISIC Rev.4를 거쳐 ICIO 50산업에 잇는다. 분류 소관 기관이 이 대응을 공개하지 않으므로 이 프로젝트에서 직접 만들었고, 규칙과 예외의 근거는 <a href="#" onclick="showTab('link');return false;">분류 연계</a> 탭에 적어 두었다. 파일 하나만 내려받으면 별도 서버나 설치 없이 바로 SQL로 질의할 수 있다.</p>
       <p><b>왜 만들었나.</b> OECD가 배포하는 원본은 연도묶음 zip 다섯 개에 담긴 거대한 정사각 행렬이다. 한 해가 4,053행 × 4,538열이고 CSV 한 장이 87MB다. 이 상태로는 「한국 반도체의 후방참여도가 언제 꺾였나」 같은 질문에 답할 수 없다 — 매번 행렬을 읽어 레온티에프 역행렬을 구해야 하기 때문이다. 이 DB는 그 계산을 28년치 전부 한 번 끝내 두어, 사용자가 곧바로 분석에 들어갈 수 있게 한다.</p>
-      <p><b>무엇이 어려운가.</b> 두 가지다. 첫째, 부가가치 계수를 어떻게 정의하느냐에 따라 수출 분해가 달라진다. 순생산물세를 부가가치에 넣지 않으면 자국분과 외국분의 합이 총수출에 못 미친다. 둘째, OECD 자신은 공표 지표를 「확장판」에서 계산한다. 중국과 멕시코를 가공무역 부문과 그 밖으로 쪼갠 표다. 이 사실을 모르고 표준판으로 계산하면 중국의 자국 부가가치 비중이 3% 높게 나온다. 둘 다 문서에 명시돼 있지 않아, 이 DB는 OECD 공표치와 55만 칸을 맞대어 실측으로 확정했다(<a href="#" onclick="showTab('build');return false">DB 구축</a> 탭).</p>
+      <p><b>무엇이 어려운가.</b> 두 가지다. 첫째, 부가가치 계수를 어떻게 정의하느냐에 따라 수출 분해가 달라진다. 순생산물세를 부가가치에 넣지 않으면 자국분과 외국분의 합이 총수출과 맞지 않는다. 대부분의 칸에서는 모자라고, 보조금이 세금보다 큰 칸에서는 넘친다. 둘째, OECD는 중국과 멕시코를 가공무역 부문과 그 밖으로 쪼갠 「확장판」을 따로 낸다. 표준판으로 계산하면 중국 전자산업(C26)의 2022년 수출 자국 부가가치가 공표치보다 3% 높게 나오고, 확장판으로 계산하면 공표치가 재현된다. 그래서 OECD는 공표 지표를 확장판 기준으로 계산하는 것으로 판단한다. 이 DB는 OECD 공표치와 55만 칸을 비교해 두 가지를 확인했다. 첫째는 TiVA 안내서의 정의와도 일치한다. 둘째는 대조에서 나온 추론이며, OECD 문서에서 이를 명시한 문장은 확인하지 못했다(<a href="#" onclick="showTab('build');return false">DB 구축</a> 탭).</p>
       <p><b>누구를 위한 것인가.</b> 무역·산업 자료로 직접 분석하려는 연구자와 학생이 주 독자다. 로컬 주피터 노트북에서 읽어 쓰는 것을 전제로 하되 conda나 특정 파이썬 버전은 필요 없다 — 패키지 넷(<code>duckdb</code>·<code>pandas</code>·<code>matplotlib</code>·<code>jupyter</code>)이면 된다. 반대로 이 DB가 답하지 못하는 것도 분명하다. 기업 단위 자료가 아니고(국가×산업 집계다), HS 품목분류가 들어 있지 않으며(자매 DB <a href="https://pilsunchoi.github.io/KCSDB2/" target="_blank" rel="noopener">KCSDB2</a>가 갖고 있다), 2022년까지다. 받아서 쓰는 방법은 <a href="#" onclick="showTab('use');return false">받기·사용</a> 탭에 있다.</p>
     </div>
 
@@ -355,7 +355,7 @@
         <thead><tr><th>물음</th><th>결론</th><th>근거</th></tr></thead>
         <tbody>
           <tr><td>부가가치 계수에 순생산물세(TLS)를 넣나</td><td>넣는다. <code>v = (VA+TLS)/X</code></td><td>TiVA의 <code>VALU</code>가 ICIO의 <code>VA+TLS</code>와 상대오차 최대 0.0%로 일치. <code>VA</code>만 쓰면 중위 2.86% 어긋난다</td></tr>
-          <tr><td>표준판에서 중국 DVA가 왜 안 맞나</td><td>OECD가 확장판에서 계산하기 때문. 결함이 아니다</td><td>확장판으로 계산하니 중국 C26 2022년 DVA 467,208.3 대 공표치 467,208.4</td></tr>
+          <tr><td>표준판에서 중국 DVA가 왜 안 맞나</td><td>공표 TiVA가 확장판 기준으로 계산된 것으로 판단한다. 결함이 아니다. 대조에서 나온 추론이며 OECD 문서에 명시된 문장은 확인하지 못했다</td><td>확장판으로 계산하니 중국 C26 2022년 DVA 467,208.3 대 공표치 467,208.4</td></tr>
           <tr><td>KSIC→ICIO에 산출액 비례배분 가중치가 필요한가</td><td>필요 없다</td><td>세분류·세세분류에서 1:n이 0개(11차 1,205개·10차 1,196개 전수)</td></tr>
           <tr><td>균형 항등식이 왜 안 맞나</td><td>원표 자체가 1e-3 안에서만 균형한다</td><td>어긋남이 <code>L</code>(부동산)·<code>T</code>(가구 내 고용)에 몰린다 — 시장가격 없는 산출을 품는 산업이다</td></tr>
           <tr><td>정확한 0을 빼면 손실인가</td><td>손실 아니다</td><td>격자가 <code>dim_icio_entity</code>×<code>dim_icio_ind</code>로 100% 복원된다</td></tr>
@@ -707,7 +707,7 @@ python scripts/10_export_lite.py</code></pre>
   <section role="tabpanel" id="tab-research" aria-labelledby="t-research">
     <div class="wrap">
       <h2 class="h">연구</h2>
-      <p class="sub lead">이 DB 위에서 수행한 분석을 모았다. 각 연구는 렌더된 문서와 그 수치를 그대로 다시 만들어 내는 노트북으로 연결된다.</p>
+      <p class="sub lead">이 DB 위에서 수행한 분석을 모았다. 각 연구는 렌더된 문서와 그 수치를 그대로 다시 만들어 내는 노트북으로 연결된다. 마지막 부록은 모든 연구가 쓰는 지표의 산식을 설명한다.</p>
       <div class="note">여기 실린 것은 이 DB로 무엇을 할 수 있는지 보이는 사례다. 방법의 예시이지 이 DB가 특정 분석을 전제한다는 뜻은 아니다.<br>노트북은 실행 결과까지 담긴 채 올라가 있어 내려받지 않고 그대로 읽을 수 있다. 직접 돌릴 때는 <a href="#" onclick="showTab('use');return false">받기·사용</a> 탭의 준비물이면 되고, 축소판 DB로도 끝까지 돈다. 다만 일본 부가가치의 도달 경로를 셋으로 가르는 한 대목만 원표를 읽으므로 축소판에서는 건너뛴다. 그림 라벨은 한글 글꼴이 없는 환경에서 영문으로 바뀐다.</div>
 
       <article class="study">
@@ -731,6 +731,26 @@ python scripts/10_export_lite.py</code></pre>
             <a href="https://github.com/pilsunchoi/GVC/blob/main/research/1.%EC%9D%BC%EB%B3%B8%EC%88%98%EC%B6%9C%EA%B7%9C%EC%A0%9C%EC%99%80_%EA%B3%B5%EA%B8%89%EB%A7%9D%EC%9E%AC%ED%8E%B8/%EB%B6%80%EB%A1%9D_%EB%B0%A9%EB%B2%95%EB%A1%A0.md" target="_blank" rel="noopener">방법론 부록</a>
             <a href="https://github.com/pilsunchoi/GVC/blob/main/research/1.%EC%9D%BC%EB%B3%B8%EC%88%98%EC%B6%9C%EA%B7%9C%EC%A0%9C%EC%99%80_%EA%B3%B5%EA%B8%89%EB%A7%9D%EC%9E%AC%ED%8E%B8/2019_japan_gvc.ipynb" target="_blank" rel="noopener">재현 노트북</a>
             <a href="https://github.com/pilsunchoi/GVC/blob/main/research/1.%EC%9D%BC%EB%B3%B8%EC%88%98%EC%B6%9C%EA%B7%9C%EC%A0%9C%EC%99%80_%EA%B3%B5%EA%B8%89%EB%A7%9D%EC%9E%AC%ED%8E%B8/%ED%9B%84%EC%86%8D_%EA%B8%B0%EC%97%85%EC%88%98%EC%A4%80_%EC%84%A4%EA%B3%84.md" target="_blank" rel="noopener">후속 연구 설계</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="study">
+        <div class="study-num">A</div>
+        <div class="study-body">
+          <h3 class="study-title">부록: GVC 지표 산식</h3>
+          <p class="study-sub">이 DB의 지표가 ICIO 원표에서 계산되는 과정과 그 해석</p>
+          <p class="study-desc">위 연구와 이 DB의 모든 지표는 같은 산식에서 나온다. 이 부록은 투입계수와 레온티에프 역행렬에서 출발해 수출의 자국·외국 부가가치, 후방·전방 참여도, 상류도와 하류도, 상대국별 부가가치, 수입에 체화된 부가가치까지를 차례로 도출한다. 3개국 1산업 수치 예제 하나로 모든 계산을 따라가고, 각 지표가 어떤 가정을 전제로 하는지와 해석할 때 주의할 점을 함께 적었다. 선형대수 기초를 배운 학부생을 독자로 상정했다.</p>
+          <ul class="study-points">
+            <li>부가가치 계수에 순생산물세를 넣어야 수출이 자국분과 외국분으로 정확히 분해된다. 넣지 않으면 분해되지 않고 남는 몫이 중위 2.9%, 칸에 따라 −7.3%에서 +18.1%다.</li>
+            <li>전방참여도는 분자와 분모의 기준이 달라 1을 넘을 수 있다. 2022년 표준판에서 563칸이 1을 넘으며, 부가가치를 분모로 둔 대안 척도를 함께 제시한다.</li>
+            <li>세계 전체로 합하면 전방참여도의 분자와 후방참여도의 분자가 같다. 이를 포함한 검증 항등식 13개와 측정 오차를 표로 정리했다.</li>
+            <li>확장판(중국·멕시코 분할)에서 계산하면 OECD TiVA 공표치가 반올림 수준으로 재현된다. 그 근거와 두 판의 선택 기준을 적었다.</li>
+          </ul>
+          <div class="study-links">
+            <a href="https://github.com/pilsunchoi/GVC/blob/main/docs/method.md" target="_blank" rel="noopener">문서 읽기</a>
+            <a href="https://github.com/pilsunchoi/GVC/blob/main/docs/method.md#%EB%B6%80%EB%A1%9D-a-%EC%88%98%EC%B9%98-%EC%98%88%EC%A0%9C-%EC%9E%AC%ED%98%84-%EC%BD%94%EB%93%9C" target="_blank" rel="noopener">수치 예제 코드</a>
+            <a href="https://github.com/pilsunchoi/GVC/blob/main/docs/method.md#12-%EC%B0%B8%EA%B3%A0%EB%AC%B8%ED%97%8C" target="_blank" rel="noopener">참고문헌</a>
           </div>
         </div>
       </article>
