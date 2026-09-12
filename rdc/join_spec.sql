@@ -56,7 +56,7 @@ COPY (
 ) TO 'rdc_industry_panel.csv' (HEADER, DELIMITER ',');
 
 -- 0-2. KSIC 세세분류 → ICIO 산업 (2,401 행 = 10차 1,196 + 11차 1,205)
---      세세분류에서 1:n 은 0 개라 가중치가 필요 없다 (봉인1).
+--      세세분류에서 1:n 은 0 개라 가중치가 필요 없다 (docs/DB_구축_원칙.md §4.2.1).
 COPY (
     SELECT ksic_rev, ksic, icio_ind
     FROM map_ksic_icio
@@ -83,7 +83,7 @@ LEFT JOIN rdc_ksic_icio m          -- 반입한 CSV (0-2)
       AND m.ksic_rev = CASE WHEN f.year >= 2024 THEN '11' ELSE '10' END;
 
 -- 붙지 않은 기업을 반드시 센다. 개수와 함께 **매출·수출 기준 비중**도 본다.
--- 개수만 보면 착시가 생긴다(KCSDB2 봉인2 교훈).
+-- 개수만 보면 착시가 생긴다(docs/DB_구축_원칙.md §6).
 SELECT
     year,
     count(*)                                          AS n_firm,
