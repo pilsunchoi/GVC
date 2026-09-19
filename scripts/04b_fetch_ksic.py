@@ -1,7 +1,7 @@
 """
 04b_fetch_ksic.py — 외부 분류 자료 수집 (KSIC 전 단계 코드·명칭, KSIC 차수 연계표, ISIC Rev.4)
 
-왜 필요한가 (docs/DB_구축_원칙.md §4.2):
+왜 필요한가 (docs/db-principles.md §4.2):
 - KSSC 「연계표」 자료실이 주는 xlsx 는 **세세분류(5자리)만** 담는다.
   KSIC→ISIC 대응을 만들려면 중분류·소분류·세분류의 이름이 있어야 한다.
   ICIO 산업이 갈리는 자리(C24A/C24B, C301/C302T309, H53/J61)가 KSIC 소분류에서 결정되기 때문이다.

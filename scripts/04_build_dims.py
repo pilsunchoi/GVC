@@ -1,7 +1,7 @@
 """
 04_build_dims.py — 참조 테이블 (dim_*, meta_edition)
 
-설계 원칙 (docs/DB_구축_원칙.md §5.2):
+설계 원칙 (docs/db-principles.md §5.2):
 - 코드·명칭·계층은 dim 에 둔다. fact 는 건드리지 않는다.
 - 출처가 기계가 읽을 수 있는 형태면 그것을 쓴다. PDF 를 손으로 옮기지 않는다.
 

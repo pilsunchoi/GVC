@@ -1,7 +1,7 @@
 """
 07_compute_loo.py — leave-one-out 지표 (mart_gvc_loo)
 
-왜 이 정의인가 (docs/DB_구축_원칙.md §1.2 다):
+왜 이 정의인가 (docs/db-principles.md §1.2 다):
   원 계획서는 "한국 행·열을 ROW 에 흡수한 축소 ICIO 에서 재계산"이라고 적었다.
   그 표에는 한국이 없으므로 한국 산업의 지표가 나오지 않는다. 도구변수로 쓸 수 없다.
   표준적인 leave-one-out 은 **같은 산업·같은 연도의, 자국을 뺀 다른 나라들의 지표**다.

@@ -1,7 +1,7 @@
 """
 02_icio_to_parquet.py — ICIO 원본 CSV(zip 안) → 연도별 parquet (long)
 
-설계 원칙 (docs/DB_구축_원칙.md §3, §5.1):
+설계 원칙 (docs/db-principles.md §3, §5.1):
 - 값을 변형하지 않는다. 반올림·균형화·보정 없음.
 - 정확히 0인 칸만 뺀다. 격자는 dim 으로 완전히 복원되므로 무손실이다(§1.2 라).
   미세값은 자르지 않는다.

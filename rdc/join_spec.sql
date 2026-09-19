@@ -13,7 +13,7 @@
 --     승인이 나지 않으면 두 표를 논문 부록에 싣고 환경 안에서 손으로 입력한다.
 --
 -- 무엇을 반출하는가: 결합 결과가 아니라 추정 결과(계수표)뿐이다.
---     결합 결과는 DB 에 저장하지 않는다 (docs/DB_구축_원칙.md §5.4).
+--     결합 결과는 DB 에 저장하지 않는다 (docs/db-principles.md §5.4).
 --
 -- 전제 (05_build_maps.py 실측, 2026-09-04):
 --   KSIC 세세분류(5자리)와 세분류(4자리)에서 ICIO 산업은 **정확히 하나**로 정해진다.
@@ -56,7 +56,7 @@ COPY (
 ) TO 'rdc_industry_panel.csv' (HEADER, DELIMITER ',');
 
 -- 0-2. KSIC 세세분류 → ICIO 산업 (2,401 행 = 10차 1,196 + 11차 1,205)
---      세세분류에서 1:n 은 0 개라 가중치가 필요 없다 (docs/DB_구축_원칙.md §4.2.1).
+--      세세분류에서 1:n 은 0 개라 가중치가 필요 없다 (docs/db-principles.md §4.2.1).
 COPY (
     SELECT ksic_rev, ksic, icio_ind
     FROM map_ksic_icio
@@ -83,7 +83,7 @@ LEFT JOIN rdc_ksic_icio m          -- 반입한 CSV (0-2)
       AND m.ksic_rev = CASE WHEN f.year >= 2024 THEN '11' ELSE '10' END;
 
 -- 붙지 않은 기업을 반드시 센다. 개수와 함께 **매출·수출 기준 비중**도 본다.
--- 개수만 보면 착시가 생긴다(docs/DB_구축_원칙.md §6).
+-- 개수만 보면 착시가 생긴다(docs/db-principles.md §6).
 SELECT
     year,
     count(*)                                          AS n_firm,
@@ -127,7 +127,7 @@ GROUP BY icio_ind;
 -- 5. 반출 전 점검
 ------------------------------------------------------------------------------
 -- 산업×연도 셀의 기업 수. 처리 분산이 산업 수준(50개 이하)에 있으므로
--- 표준오차는 산업 수준에서 군집화해야 한다 (docs/DB_구축_원칙.md §5.4, §9).
+-- 표준오차는 산업 수준에서 군집화해야 한다 (docs/db-principles.md §5.4, §9).
 SELECT icio_ind, year, count(*) AS n_firm
 FROM v_firm_gvc
 GROUP BY icio_ind, year

@@ -2,7 +2,7 @@
 
 작성일: 2026-09-04
 대상: OECD ICIO 기반 GVC 지표 DB + 한국 산업분류 연계 (프로젝트 `GVC`)
-선행: `docs/KSIC-ISIC-ICIO_DB_구축계획서.md` (원 계획서. 이 문서가 그것을 대체한다)
+선행: `docs/ksic-isic-icio-plan.md` (원 계획서. 이 문서가 그것을 대체한다)
 자매 DB: `KCSDB2` (관세청 무역통계). 구축 철학을 그대로 따른다.
 
 이 문서는 설계 헌법이다. 모든 스크립트는 이 원칙을 따른다. 원칙과 코드가 충돌하면 코드를 고친다.
@@ -381,8 +381,8 @@ PASS/WARN으로 뭉뚱그리기보다 매번 수치를 찍는 편이 낫다고 �
 ```
 GVC/
 ├── docs/
-│   ├── DB_구축_원칙.md              (이 문서. 정본)
-│   ├── KSIC-ISIC-ICIO_DB_구축계획서.md  (원 계획서. 이력으로 보존)
+│   ├── db-principles.md            (이 문서. 정본)
+│   ├── ksic-isic-icio-plan.md      (원 계획서. 이력으로 보존)
 │   ├── method.md                   (지표 산식·참조 절 번호)
 │   ├── 세션_발견_노트.md
 │   └── index.html                  (GitHub Pages, 후순위)

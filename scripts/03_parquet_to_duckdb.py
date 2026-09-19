@@ -1,7 +1,7 @@
 """
 03_parquet_to_duckdb.py — 연도별 parquet → DuckDB fact 테이블
 
-설계 원칙 (docs/DB_구축_원칙.md §5.1):
+설계 원칙 (docs/db-principles.md §5.1):
 - fact 는 OECD 가 배포한 값만 담는다. 파생 컬럼 없음.
 - edition 을 키에 넣는다. 판이 다르면 다른 자료이고 결합하지 않는다(§0-5).
 - 다시 돌리면 같은 결과가 나와야 한다 → 같은 edition 의 행을 지우고 새로 넣는다.

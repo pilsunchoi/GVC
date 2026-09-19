@@ -17,7 +17,7 @@
 `map_ksic_isic`와 `map_ksic_icio`는 공표된 연계표가 아니다. 통계청이 KSIC↔ISIC 연계표를
 내지 않으므로 이 저장소가 만든 대응이며, 통계청·OECD의 공식 판단이 아니다.
 규칙과 근거는 [`scripts/05_build_maps.py`](scripts/05_build_maps.py)의 `RULES`에 있고,
-만든 방법은 [`docs/DB_구축_원칙.md`](docs/DB_구축_원칙.md) §4에 있다.
+만든 방법은 [`docs/db-principles.md`](docs/db-principles.md) §4에 있다.
 재배포하거나 인용할 때는 추정임을 함께 밝힌다.
 
 ---

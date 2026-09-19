@@ -1,5 +1,5 @@
 """
-common.py — 경로·로깅·해시 공통 유틸 (docs/DB_구축_원칙.md §7)
+common.py — 경로·로깅·해시 공통 유틸 (docs/db-principles.md §7)
 
 모든 빌드 스크립트가 이것을 쓴다. 경로를 각자 정의하지 않는다.
 """

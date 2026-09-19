@@ -1,7 +1,7 @@
 """
 10_export_lite.py — 교육·배포용 축소 DB (gvc_lite.duckdb)
 
-왜 (docs/DB_구축_원칙.md §8):
+왜 (docs/db-principles.md §8):
 - 본 DB는 약 2GB다. 그중 92%가 `fact_icio_z`(2억 5,500만 행) 하나다.
 - 수업이나 첫 탐색에서 필요한 것은 dim·map·mart 이지 원표 자체가 아니다.
 - 그래서 `fact_icio_z` 를 뺀 판을 따로 낸다. 수십 MB 라 내려받기 부담이 없다.

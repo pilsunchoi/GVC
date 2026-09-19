@@ -1,7 +1,7 @@
 """
 09_validate.py — 통합 검증 (단일 진입점)
 
-설계 원칙 (docs/DB_구축_원칙.md §6):
+설계 원칙 (docs/db-principles.md §6):
 - 검증을 여러 파일로 분열시키지 않는다. 이것 하나다.
 - 각 항목은 PASS / WARN / FAIL. WARN 은 "설계상 예상된 불완전", FAIL 은 무결성 위반.
 - FAIL 이 있으면 종료코드 1.

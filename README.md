@@ -8,7 +8,7 @@ OECD 국가간 산업연관표(ICIO) 2025판을 원표 그대로 담고, 표준 
 **소개 대시보드: [docs/index.html](docs/index.html)** — 무엇이 들어 있고, 어떻게 만들었고,
 무엇을 조심해야 하는지를 다섯 탭으로 정리했다(개요 · DB 구축 · 분류 연계 · 데이터 함정 · 받기·사용).
 
-설계 헌법은 [`docs/DB_구축_원칙.md`](docs/DB_구축_원칙.md), 지표 산식은 [`docs/method.md`](docs/method.md)다.
+설계 헌법은 [`docs/db-principles.md`](docs/db-principles.md), 지표 산식은 [`docs/method.md`](docs/method.md)다.
 
 ---
 

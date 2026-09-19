@@ -1,7 +1,7 @@
 """
 06_compute_gvc.py — 표준 GVC 지표 산출 (mart_gvc_core, mart_gvc_bilateral)
 
-설계 원칙 (docs/DB_구축_원칙.md §5.3, §5.4):
+설계 원칙 (docs/db-principles.md §5.3, §5.4):
 - 계산된 지표는 mart 계층에 둔다. fact 는 건드리지 않는다.
 - 모든 행이 edition 과 method_version 을 갖는다. 산식을 고치면 method_version 을 올린다.
 - 산식은 docs/method.md 에 적고 여기에 절 번호를 단다.

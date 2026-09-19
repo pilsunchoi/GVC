@@ -1,7 +1,7 @@
 """
 05_build_maps.py — 분류 연계표 (map_isic_icio, map_ksic_isic, map_ksic_icio)
 
-설계 원칙 (docs/DB_구축_원칙.md §4):
+설계 원칙 (docs/db-principles.md §4):
 - ICIO 산업의 ISIC 정의는 OECD ReadMe 에서 기계적으로 뽑는다(손으로 옮기지 않는다).
 - KSIC→ICIO 는 **가중치 없는 결정적 매핑**을 목표로 한다. 산출액 비례배분을 기본에서 뺐다(§1.2 나).
   KSIC 세세분류마다 ICIO 산업이 하나로 정해지는지를 이 스크립트가 실측으로 확인한다.

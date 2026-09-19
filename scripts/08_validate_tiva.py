@@ -1,7 +1,7 @@
 """
 08_validate_tiva.py — OECD TiVA 공표치와 자체 산출치 대조 (mart_tiva_check)
 
-왜 (docs/DB_구축_원칙.md §6-9):
+왜 (docs/db-principles.md §6-9):
 - 우리가 ICIO 원표에서 직접 계산한 지표가 OECD 공표치를 재현하는지 확인한다.
   KCSDB2 의 `mart_nqi_check`(우리 도출치 대 관세청 공식치)와 같은 역할이다.
 
