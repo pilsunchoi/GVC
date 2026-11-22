@@ -709,11 +709,11 @@ $2.36$, $2.36$). 처치 전에 이미 이만큼 변동하는 계열에서는 처
 Korean Exports: The Effects of Trump's Tariffs on China」, 『국제통상연구』 23(4), 1–21.
 <https://doi.org/10.23030/katis.2018.23.4.001>
 
-Alfaro, L. & Chor, D. (2023). "Global Supply Chains: The Looming 'Great Reallocation'," Jackson
-Hole Economic Policy Symposium.
+Alfaro, L. & Chor, D. (2023). "Global Supply Chains: The Looming 'Great Reallocation',"
+*Jackson Hole Economic Policy Symposium*.
 
 Iyoha, E., Malesky, E., Wen, J. & Wu, S.-J. (2025). "Exports in Disguise? Trade Rerouting during the
-US–China Trade War," Harvard Business School Working Paper 24-072.
+US–China Trade War," *Harvard Business School Working Paper* 24-072.
 <https://www.hbs.edu/ris/Publication%20Files/24-072_d5780e10-7ebe-405a-840d-0d64c13aa2f2.pdf>
 
 Jones, R. S. (2026). "South Korea's Strategies to Cope With a Changing Global Trading System," Korea
@@ -721,7 +721,7 @@ Economic Institute of America.
 <https://keia.org/analysis/south-koreas-strategies-to-cope-with-a-changing-global-trading-system/>
 
 Lovely, M. E., Xu, D. & Zhang, Y. (2021). "Collateral Benefits? South Korean Exports to the United
-States and the US-China Trade War," PIIE Policy Brief 21-18.
+States and the US-China Trade War," *PIIE Policy Brief* 21-18.
 <https://www.piie.com/sites/default/files/documents/pb21-18.pdf>
 
 OECD (2025). *Inter-Country Input-Output Tables*, 2025 edition (extended version). Paris: OECD.
@@ -730,7 +730,7 @@ Roth, J. (2022). "Pretest with Caution: Event-Study Estimates after Testing for 
 *American Economic Review: Insights* 4(3), 305–322. <https://doi.org/10.1257/aeri.20210236>
 
 Wang, Z., Wei, S.-J. & Zhu, K. (2013). "Quantifying International Production Sharing at the
-Bilateral and Sector Levels," NBER Working Paper 19677. <https://www.nber.org/papers/w19677>
+Bilateral and Sector Levels," *NBER Working Paper* 19677. <https://www.nber.org/papers/w19677>
 
 Waugh, M. E. *tradewar-tracker*. GitHub 저장소, 미국의 대중 관세율 HS6 정리본.
 <https://github.com/mwaugh0328/tradewar-tracker>
