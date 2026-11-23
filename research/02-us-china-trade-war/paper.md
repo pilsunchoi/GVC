@@ -177,7 +177,7 @@ $$M_{CHN,USA} = V \sum_{g} p_g \sum_{i} s_{i|g}  u_{gi} \qquad (5)$$
 
 그림에서 베트남의 비중은 2018년 이전부터 높아지고 있었다. 중국의 비중은 그 이전 기간의 대부분에 7\~9% 수준이었고, 2019년의 2.5%p 하락은 그 이전의 연간 변동 최댓값 1.6%p보다 크다. 중국 경유 금액은 2021년에 57.2억 달러로 일시 회복했으나 2018년 수준에 미치지 못했고 2022년에 다시 줄었다. 이 관찰은 시점과 구성을 확인해 줄 뿐이며 관세, 조달 변화, 기업 이전 각각의 기여를 분리해 주지 않는다.
 
-베트남의 최종 생산에도 중국산 투입물이 쓰일 수 있다. 태국 기업과 베트남 품목에 대한 연구도 제3국의 수출 증가를 중국산 투입물 의존과 연결한다(Hayakawa & Keola, 2025; Tung, 2026). 부가가치가 최종재 생산국에 배정되므로, 한국 부가가치가 상류에서 중국의 생산에 의존하는 정도가 전혀 달라지지 않아도 중국 경유분은 줄고 베트남 경유분은 늘어날 수 있다. 이를 측정하기 위해 생산 단계와 무관하게 중국의 생산을 한 번이라도 거쳐 미국 최종수요에 도달한 한국 부가가치를 계산한다. $\tilde{u}_k$를 세계 체계에서 중국의 생산을 제외하고 계산한 최종 산출 $k$의 한국 함량이라 하면, $\tilde{u}_k$는 중국을 전혀 거치지 않는 공급사슬만 계상한다. 중국 밖의 최종재 생산자에 대해 $(u_k - \tilde{u}_k) F_{k,USA}$는 그 생산자에 도달하기 전에 중국의 생산을 거친 한국 부가가치다. 표 5는 그 결과를 최종재 생산국별로 제시한다. 중국 행은 식 (3)의 값이고, 나머지 행은 중국산 중간재에 체화되어 해당 경제의 최종 생산에 투입된 한국 부가가치다.
+베트남의 최종 생산에도 중국산 투입물이 쓰일 수 있다. 태국 기업과 베트남 품목에 대한 연구도 제3국의 수출 증가를 중국산 투입물 의존과 연결한다(Hayakawa and Keola, 2025; Tung, 2026). 부가가치가 최종재 생산국에 배정되므로, 한국 부가가치가 상류에서 중국의 생산에 의존하는 정도가 전혀 달라지지 않아도 중국 경유분은 줄고 베트남 경유분은 늘어날 수 있다. 이를 측정하기 위해 생산 단계와 무관하게 중국의 생산을 한 번이라도 거쳐 미국 최종수요에 도달한 한국 부가가치를 계산한다. $\tilde{u}_k$를 세계 체계에서 중국의 생산을 제외하고 계산한 최종 산출 $k$의 한국 함량이라 하면, $\tilde{u}_k$는 중국을 전혀 거치지 않는 공급사슬만 계상한다. 중국 밖의 최종재 생산자에 대해 $(u_k - \tilde{u}_k) F_{k,USA}$는 그 생산자에 도달하기 전에 중국의 생산을 거친 한국 부가가치다. 표 5는 그 결과를 최종재 생산국별로 제시한다. 중국 행은 식 (3)의 값이고, 나머지 행은 중국산 중간재에 체화되어 해당 경제의 최종 생산에 투입된 한국 부가가치다.
 
 **표 5. 중국의 생산을 한 번이라도 거쳐 미국에서 흡수된 한국 부가가치**
 
@@ -305,7 +305,7 @@ Freund, C., Mattoo, A., Mulabdic, A. & Ruta, M. (2024). "Is US Trade Policy Resh
 
 Hayakawa, K. & Keola, S. (2025). "Trade Diversion in the US Market during the US-China Trade War: Firm-Level Evidence from Thailand," *Journal of Economic Integration* 40(4), 589–603. <https://doi.org/10.11130/jei.2025013>
 
-Iyoha, E., Malesky, E., Wen, J. & Wu, S.-J. (2025). "Exports in Disguise? Trade Rerouting during the US–China Trade War," *Harvard Business School Working Paper* 24-072. <https://www.hbs.edu/ris/Publication%20Files/24-072_d5780e10-7ebe-405a-840d-0d64c13aa2f2.pdf>
+Iyoha, E., Malesky, E., Wen, J. & Wu, S.-J. (2025). "Exports in Disguise? Trade Rerouting during the US–China Trade War," *CITP Working Paper* 022, Centre for Inclusive Trade Policy. <https://citp.ac.uk/publications/exports-in-disguise-trade-rerouting-during-the-us-china-trade-war>
 
 Johnson, R. C. & Noguera, G. (2012). "Accounting for Intermediates: Production Sharing and Trade in Value Added," *Journal of International Economics* 86(2), 224–236.
 
